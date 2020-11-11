@@ -17,7 +17,7 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	UPROPERTY(VisibleDefaultsOnly, Category = Box)
 	class UBoxComponent* m_Box;
 	
-	UPROPERTY(EditAnywhere, Category = Materials)
+	UPROPERTY(VisibleDefaultsOnly, Category = Materials)
 	class UMaterialInterface* m_HighlightMaterial;
 
 	class UMaterialInstanceDynamic* m_GridMaterialRef;
