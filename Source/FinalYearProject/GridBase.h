@@ -12,7 +12,10 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Plane)
-	class UStaticMeshComponent* m_Plane;
+	class UStaticMeshComponent* m_Tile;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Plane)
+	class UStaticMeshComponent* m_Highlight;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Box)
 	class UBoxComponent* m_Box;
