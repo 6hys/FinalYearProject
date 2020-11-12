@@ -14,4 +14,7 @@ AFinalYearProjectGameMode::AFinalYearProjectGameMode()
 
 	// use our custom HUD class
 	HUDClass = AFinalYearProjectHUD::StaticClass();
+
+	// player controller
+	//PlayerControllerClass = PlayerControllerBP;
 }
