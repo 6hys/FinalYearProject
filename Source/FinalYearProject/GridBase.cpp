@@ -70,3 +70,8 @@ void AGridBase::Tick(float DeltaTime)
 
 }
 
+void AGridBase::Interact()
+{
+	UE_LOG(LogTemp, Display, TEXT("Interact with %s"), *GetName());
+}
+

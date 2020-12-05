@@ -3,6 +3,7 @@
 #include "FinalYearProjectGameMode.h"
 #include "FinalYearProjectHUD.h"
 #include "FinalYearProjectCharacter.h"
+#include "FinalYearProjectPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFinalYearProjectGameMode::AFinalYearProjectGameMode()
@@ -16,5 +17,5 @@ AFinalYearProjectGameMode::AFinalYearProjectGameMode()
 	HUDClass = AFinalYearProjectHUD::StaticClass();
 
 	// player controller
-	//PlayerControllerClass = PlayerControllerBP;
+	PlayerControllerClass = AFinalYearProjectPlayerController::StaticClass();
 }
