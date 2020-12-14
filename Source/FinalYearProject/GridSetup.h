@@ -14,7 +14,7 @@ class FINALYEARPROJECT_API AGridSetup : public AActor
 
 	const int m_GridX = 10;
 	const int m_GridY = 10;
-	const int m_GridSize = 128;
+	const int m_GridSize = 200;
 
 	UPROPERTY(EditAnywhere, Category = Grid)
 	TArray<AGridBase*> m_GridArray;

@@ -41,12 +41,25 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
+
+	// Create a watering can mesh component
+	FP_WateringCan = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FP_WateringCan"));
+	FP_WateringCan->SetOnlyOwnerSee(true);	// only the player will see this.
+	FP_WateringCan->bCastDynamicShadow = false;
+	FP_WateringCan->CastShadow = false;
+	FP_WateringCan->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	FP_WateringCan->SetupAttachment(RootComponent);
 }
 
 void AFinalYearProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	// Attach watering can mesh to character.
+	FP_WateringCan->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+
+	FP_WateringCan->AddLocalOffset(FVector(0, 19, -15));
 
 	Mesh1P->SetHiddenInGame(false, true);
 }

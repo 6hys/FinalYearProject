@@ -16,6 +16,10 @@ class AFinalYearProjectCharacter : public ACharacter
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	class USkeletalMeshComponent* Mesh1P;
+	
+	/** Watering Can mesh */
+	UPROPERTY(VisibleAnywhere, Category=Mesh)
+	class UStaticMeshComponent* FP_WateringCan;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

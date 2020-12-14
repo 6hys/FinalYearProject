@@ -5,6 +5,9 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 
 // Sets default values
 AGridBase::AGridBase()
@@ -15,13 +18,13 @@ AGridBase::AGridBase()
 	RootComponent = m_Box;
 
 	m_Box->CreationMethod = EComponentCreationMethod::Native;
-	m_Box->SetBoxExtent(FVector(64.0f, 64.0f, 1.0f));
+	m_Box->SetBoxExtent(FVector(100.0f, 100.0f, 10.0f));
 	m_Box->SetCollisionProfileName(FName(TEXT("Custom")));
 	m_Box->SetCollisionObjectType(ECC_GameTraceChannel2);
 
 	m_Tile->SetupAttachment(m_Box);
 	m_Tile->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-	m_Tile->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.0f));
+	m_Tile->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	m_Tile->SetCollisionProfileName(FName(TEXT("NoCollision")));
 	m_Tile->CastShadow = false;
 
@@ -38,11 +41,17 @@ AGridBase::AGridBase()
 		m_Highlight->SetStaticMesh(highlight.Object);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> dirtTile(TEXT("/Game/Geometry/Meshes/GridTile.GridTile"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> dirtTile(TEXT("/Game/LowPolyFarm/Meshes/Landscape/Mesh_Landscape_Mud_02.Mesh_Landscape_Mud_02"));
 	if (dirtTile.Succeeded())
 	{
 		m_Tile->SetStaticMesh(dirtTile.Object);
+
+		m_GridMaterial = UMaterialInstanceDynamic::Create(m_Tile->GetMaterial(0), NULL);
+		m_Tile->SetMaterial(0, m_GridMaterial);
 	}
+
+	// Initialise tile as empty.
+	m_State = State::Empty;
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -73,5 +82,30 @@ void AGridBase::Tick(float DeltaTime)
 void AGridBase::Interact()
 {
 	UE_LOG(LogTemp, Display, TEXT("Interact with %s"), *GetName());
+
+	float tile_Multiplier = 1.0f;
+
+	switch (m_State)
+	{
+	case Empty:
+		// Update tile multiplier to darken the material and give it a watered look.
+		tile_Multiplier = 0.3f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		m_State = Watered;
+		break;
+	case Planted:
+		// Update tile multiplier to darken the material and give it a watered look.
+		tile_Multiplier = 0.3f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		m_State = WateredAndPlanted;
+		break;
+	case Watered:
+	case WateredAndPlanted:
+	default:
+		break;
+	}
+
 }
 

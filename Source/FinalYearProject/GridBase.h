@@ -23,7 +23,17 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	UPROPERTY(VisibleDefaultsOnly, Category = Materials)
 	class UMaterialInterface* m_HighlightMaterial;
 
-	class UMaterialInstanceDynamic* m_GridMaterialRef;
+	class UMaterialInstanceDynamic* m_GridMaterial;
+
+	// State of the farm tile.
+	enum State {
+		Empty = 0,
+		Watered = 1,
+		Planted = 2,
+		WateredAndPlanted = 3
+	};
+
+	State m_State;
 	
 public:	
 	// Sets default values for this actor's properties
