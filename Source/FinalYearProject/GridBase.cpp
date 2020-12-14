@@ -41,17 +41,27 @@ AGridBase::AGridBase()
 		m_Highlight->SetStaticMesh(highlight.Object);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> dirtTile(TEXT("/Game/LowPolyFarm/Meshes/Landscape/Mesh_Landscape_Mud_02.Mesh_Landscape_Mud_02"));
-	if (dirtTile.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> planted(TEXT("/Game/LowPolyFarm/Meshes/Landscape/Mesh_Landscape_Mud_02.Mesh_Landscape_Mud_02"));
+	if (planted.Succeeded())
 	{
-		m_Tile->SetStaticMesh(dirtTile.Object);
+		m_PlantedMesh = planted.Object;
+	}
 
-		m_GridMaterial = UMaterialInstanceDynamic::Create(m_Tile->GetMaterial(0), NULL);
-		m_Tile->SetMaterial(0, m_GridMaterial);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> unplanted(TEXT("/Game/LowPolyFarm/Meshes/Landscape/Mesh_Landscape_Mud_05.Mesh_Landscape_Mud_05"));
+	if (unplanted.Succeeded())
+	{
+		m_UnplantedMesh = unplanted.Object;
 	}
 
 	// Initialise tile as empty.
 	m_State = State::Empty;
+
+	// Set mesh as unplanted
+	m_Tile->SetStaticMesh(m_UnplantedMesh);
+
+	// Get material
+	m_GridMaterial = UMaterialInstanceDynamic::Create(m_Tile->GetMaterial(0), NULL);
+	m_Tile->SetMaterial(0, m_GridMaterial);
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -79,29 +89,59 @@ void AGridBase::Tick(float DeltaTime)
 
 }
 
-void AGridBase::Interact()
+void AGridBase::Interact(Equipment item)
 {
-	UE_LOG(LogTemp, Display, TEXT("Interact with %s"), *GetName());
-
 	float tile_Multiplier = 1.0f;
 
 	switch (m_State)
 	{
 	case Empty:
 		// Update tile multiplier to darken the material and give it a watered look.
-		tile_Multiplier = 0.3f;
-		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
-		m_Tile->SetMaterial(0, m_GridMaterial);
-		m_State = Watered;
+		if (item == Equipment::Watering_Can)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Watering %s"), *GetName());
+
+			tile_Multiplier = 0.4f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+			m_State = Watered;
+		}
+		else if (item == Equipment::None)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Tilling %s"), *GetName());
+
+			tile_Multiplier = 0.75f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			m_Tile->SetStaticMesh(m_PlantedMesh);
+			m_State = Planted;
+		}
 		break;
 	case Planted:
 		// Update tile multiplier to darken the material and give it a watered look.
-		tile_Multiplier = 0.3f;
-		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
-		m_Tile->SetMaterial(0, m_GridMaterial);
-		m_State = WateredAndPlanted;
+		if (item == Equipment::Watering_Can)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Watering %s"), *GetName());
+
+			tile_Multiplier = 0.3f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+			m_State = WateredAndPlanted;
+		}
 		break;
 	case Watered:
+		if (item == Equipment::None)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Tilling %s"), *GetName());
+
+			tile_Multiplier = 0.3f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			m_Tile->SetStaticMesh(m_PlantedMesh);
+			m_State = WateredAndPlanted;
+		}
 	case WateredAndPlanted:
 	default:
 		break;

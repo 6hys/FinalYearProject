@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "FinalYearProjectCharacter.h"
 #include "GridBase.generated.h"
 
 UCLASS()
@@ -34,6 +35,9 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	};
 
 	State m_State;
+
+	UStaticMesh* m_UnplantedMesh;
+	UStaticMesh* m_PlantedMesh;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -50,5 +54,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void Interact();
+	void Interact(Equipment item);
 };

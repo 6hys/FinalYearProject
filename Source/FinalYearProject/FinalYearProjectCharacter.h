@@ -8,7 +8,12 @@
 
 class UInputComponent;
 
-UCLASS(config=Game)
+enum Equipment {
+	None = 0,
+	Watering_Can = 1
+};
+
+UCLASS(config = Game)
 class AFinalYearProjectCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -19,11 +24,15 @@ class AFinalYearProjectCharacter : public ACharacter
 	
 	/** Watering Can mesh */
 	UPROPERTY(VisibleAnywhere, Category=Mesh)
-	class UStaticMeshComponent* FP_WateringCan;
+	class UStaticMeshComponent* FP_Equipment;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
+
+	Equipment m_CurrentlyEquipped;
+
+	UStaticMesh* m_WateringCanMesh;
 
 public:
 	AFinalYearProjectCharacter();
@@ -66,6 +75,11 @@ protected:
 
 	// Interaction with the farm tiles.
 	void Interact();
+
+	// Changing equipped item
+	void Equip1();
+	void Equip2();
+	void Equip(Equipment newEquip);
 
 public:
 	/** Returns Mesh1P subobject **/
