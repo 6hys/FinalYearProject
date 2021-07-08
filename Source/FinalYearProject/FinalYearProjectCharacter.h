@@ -10,7 +10,8 @@ class UInputComponent;
 
 enum Equipment {
 	None = 0,
-	Watering_Can = 1
+	Watering_Can = 1,
+	Seeds = 2
 };
 
 UCLASS(config = Game)
@@ -33,6 +34,9 @@ class AFinalYearProjectCharacter : public ACharacter
 	Equipment m_CurrentlyEquipped;
 
 	UStaticMesh* m_WateringCanMesh;
+	UStaticMesh* m_SeedMesh;
+
+	FVector m_CurrentOffset;
 
 public:
 	AFinalYearProjectCharacter();
@@ -77,9 +81,9 @@ protected:
 	void Interact();
 
 	// Changing equipped item
-	void Equip1();
-	void Equip2();
 	void Equip(Equipment newEquip);
+
+	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 
 public:
 	/** Returns Mesh1P subobject **/

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FinalYearProjectCharacter.h"
+#include "Plant.h"
 #include "GridBase.generated.h"
 
 UCLASS()
@@ -20,6 +21,9 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Box)
 	class UBoxComponent* m_Box;
+
+	UPROPERTY(VisibleAnywhere, Category = Seed)
+	class UStaticMeshComponent* m_Plant;
 	
 	UPROPERTY(VisibleDefaultsOnly, Category = Materials)
 	class UMaterialInterface* m_HighlightMaterial;
@@ -29,9 +33,11 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	// State of the farm tile.
 	enum State {
 		Empty = 0,
-		Watered = 1,
-		Planted = 2,
-		WateredAndPlanted = 3
+		Tilled = 1,
+		Watered = 2,
+		WateredAndTilled = 3,
+		Planted = 4,
+		WateredAndPlanted = 5
 	};
 
 	State m_State;
@@ -55,4 +61,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Interact(Equipment item);
+
+	void SetPlantMesh(UStaticMesh* mesh);
 };

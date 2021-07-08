@@ -8,6 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AGridBase::AGridBase()
@@ -63,6 +64,13 @@ AGridBase::AGridBase()
 	m_GridMaterial = UMaterialInstanceDynamic::Create(m_Tile->GetMaterial(0), NULL);
 	m_Tile->SetMaterial(0, m_GridMaterial);
 
+	// Create plant mesh component
+	m_Plant = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("m_Plant"));
+	m_Plant->bCastDynamicShadow = false;
+	m_Plant->SetupAttachment(m_Tile, TEXT("Plant"));
+	m_Plant->SetupAttachment(RootComponent);
+	m_Plant->SetActive(false);
+
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -79,7 +87,8 @@ void AGridBase::OnConstruction(const FTransform& Transform)
 void AGridBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	m_Plant->AttachToComponent(m_Tile, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("Plant"));
 }
 
 // Called every frame
@@ -115,10 +124,10 @@ void AGridBase::Interact(Equipment item)
 			m_Tile->SetMaterial(0, m_GridMaterial);
 
 			m_Tile->SetStaticMesh(m_PlantedMesh);
-			m_State = Planted;
+			m_State = Tilled;
 		}
 		break;
-	case Planted:
+	case Tilled:
 		// Update tile multiplier to darken the material and give it a watered look.
 		if (item == Equipment::Watering_Can)
 		{
@@ -127,7 +136,15 @@ void AGridBase::Interact(Equipment item)
 			tile_Multiplier = 0.3f;
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
-			m_State = WateredAndPlanted;
+			m_State = WateredAndTilled;
+		}
+		else if (item == Equipment::Seeds)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
+
+			// Add pumpkin mesh to the top.
+			m_Plant->SetActive(true);
+			m_State = Planted;
 		}
 		break;
 	case Watered:
@@ -140,12 +157,46 @@ void AGridBase::Interact(Equipment item)
 			m_Tile->SetMaterial(0, m_GridMaterial);
 
 			m_Tile->SetStaticMesh(m_PlantedMesh);
+			m_State = WateredAndTilled;
+		}
+		break;
+	case WateredAndTilled:
+		if (item == Equipment::Seeds)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
+
+			// Add pumpkin mesh to the top.
+			m_Plant->SetActive(true);
+
 			m_State = WateredAndPlanted;
 		}
+		break;
+	case Planted:
+		if (item == Equipment::Watering_Can)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Watering %s"), *GetName());
+
+			tile_Multiplier = 0.3f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+			m_State = WateredAndPlanted;
+		}
+		break;
 	case WateredAndPlanted:
 	default:
 		break;
 	}
 
+}
+
+void AGridBase::SetPlantMesh(UStaticMesh* mesh)
+{
+	if (m_State == Tilled || m_State == WateredAndTilled)
+	{
+		UE_LOG(LogTemp, Display, TEXT("SetPlantMesh"));
+
+		m_Plant->SetStaticMesh(mesh);
+		m_Plant->SetRelativeScale3D(FVector(7.0, 7.0, 7.0));
+	}
 }
 

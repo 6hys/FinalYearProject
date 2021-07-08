@@ -58,7 +58,14 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter()
 		m_WateringCanMesh = wateringCan.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> pumpkin((TEXT("/Game/LowPolyFarm/Meshes/Plants/Mesh_Plants_Millet_02.Mesh_Plants_Millet_02")));
+	if (pumpkin.Succeeded())
+	{
+		m_SeedMesh = pumpkin.Object;
+	}
+
 	m_CurrentlyEquipped = Equipment::None;
+	m_CurrentOffset = FVector(0, 0, 0);
 }
 
 void AFinalYearProjectCharacter::BeginPlay()
@@ -88,8 +95,9 @@ void AFinalYearProjectCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFinalYearProjectCharacter::Interact);
 
 	// Bind equip events
-	PlayerInputComponent->BindAction("Equip1", IE_Pressed, this, &AFinalYearProjectCharacter::Equip1);
-	PlayerInputComponent->BindAction("Equip2", IE_Pressed, this, &AFinalYearProjectCharacter::Equip2);
+	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip1", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::None);
+	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip2", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::Watering_Can);
+	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip3", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::Seeds);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFinalYearProjectCharacter::MoveForward);
@@ -145,7 +153,7 @@ void AFinalYearProjectCharacter::Interact()
 	GetController()->GetPlayerViewPoint(start, rot);
 
 	// 2000 is the distance it checks for. Need to set this much lower. 
-	FVector end = start + (rot.Vector() * 250);
+	FVector end = start + (rot.Vector() * 300);
 
 	FCollisionQueryParams traceParams;
 	GetWorld()->LineTraceSingleByObjectType(hit, start, end, ECC_GameTraceChannel2, traceParams);
@@ -154,6 +162,10 @@ void AFinalYearProjectCharacter::Interact()
 	if (hit.GetActor())
 	{
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
+		if (m_CurrentlyEquipped == Seeds)
+		{
+			hitTile->SetPlantMesh(m_SeedMesh);
+		}
 		hitTile->Interact(m_CurrentlyEquipped);
 	}
 	else
@@ -162,20 +174,12 @@ void AFinalYearProjectCharacter::Interact()
 	}
 }
 
-void AFinalYearProjectCharacter::Equip1()
-{
-	Equip(Equipment::None);
-}
-
-void AFinalYearProjectCharacter::Equip2()
-{
-	Equip(Equipment::Watering_Can);
-}
-
 void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 {
 	if (m_CurrentlyEquipped != newEquip)
 	{
+		FP_Equipment->AddLocalOffset(m_CurrentOffset * -1);
+
 		switch (newEquip)
 		{
 		case None:
@@ -183,12 +187,21 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 			FP_Equipment->SetStaticMesh(NULL);
 			FP_Equipment->SetActive(false);
 			FP_Equipment->ResetRelativeTransform();
+			m_CurrentOffset = FVector(0, 0, 0);
 			break;
 		case Watering_Can:
 			UE_LOG(LogTemp, Display, TEXT("Equipping Watering Can"));
 			FP_Equipment->SetActive(true);
 			FP_Equipment->SetStaticMesh(m_WateringCanMesh);
-			FP_Equipment->AddLocalOffset(FVector(0, 19, -15));
+			m_CurrentOffset = FVector(0, 19, -15);
+			FP_Equipment->AddLocalOffset(m_CurrentOffset);
+			break;
+		case Seeds:
+			UE_LOG(LogTemp, Display, TEXT("Equipping Seeds"));
+			FP_Equipment->SetActive(true);
+			FP_Equipment->SetStaticMesh(m_SeedMesh);
+			m_CurrentOffset = FVector(0, 19, -15);
+			FP_Equipment->AddLocalOffset(m_CurrentOffset);
 			break;
 		}
 
