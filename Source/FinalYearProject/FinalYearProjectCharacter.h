@@ -57,7 +57,7 @@ protected:
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
-	/** Handles stafing movement, left and right */
+	/** Handles strafing movement, left and right */
 	void MoveRight(float Val);
 
 	/**
@@ -82,6 +82,9 @@ protected:
 
 	// Changing equipped item
 	void Equip(Equipment newEquip);
+
+	// Pause the game
+	void Pause();
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 

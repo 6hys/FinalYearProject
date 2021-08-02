@@ -1,7 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "FinalYearProjectCharacter.h"
-#include "FinalYearProjectProjectile.h"
 #include "GridBase.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -14,6 +13,9 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Blueprint/UserWidget.h"
+#include "FinalYearProjectHUD.h"
+#include "FinalYearProjectPlayerController.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -52,13 +54,13 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter()
 	FP_Equipment->SetupAttachment(Mesh1P, TEXT("GripPoint"));
 	FP_Equipment->SetupAttachment(RootComponent);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> wateringCan((TEXT("/Game/LowPolyFarm/Meshes/Props/Mesh_Props_WateringCan_02.Mesh_Props_WateringCan_02")));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> wateringCan(TEXT("/Game/LowPolyFarm/Meshes/Props/Mesh_Props_WateringCan_02.Mesh_Props_WateringCan_02"));
 	if (wateringCan.Succeeded())
 	{
 		m_WateringCanMesh = wateringCan.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> pumpkin((TEXT("/Game/LowPolyFarm/Meshes/Plants/Mesh_Plants_Millet_02.Mesh_Plants_Millet_02")));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> pumpkin(TEXT("/Game/LowPolyFarm/Meshes/Plants/Mesh_Plants_Millet_02.Mesh_Plants_Millet_02"));
 	if (pumpkin.Succeeded())
 	{
 		m_SeedMesh = pumpkin.Object;
@@ -102,6 +104,9 @@ void AFinalYearProjectCharacter::SetupPlayerInputComponent(class UInputComponent
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFinalYearProjectCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFinalYearProjectCharacter::MoveRight);
+
+	// Bind pause event
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AFinalYearProjectCharacter::Pause);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -207,4 +212,14 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 
 		m_CurrentlyEquipped = newEquip;
 	}
+}
+
+void AFinalYearProjectCharacter::Pause()
+{
+	AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+	AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(controller->GetHUD());
+
+	hud->SetPaused(true);
+	controller->SetPause(true);
+	controller->bShowMouseCursor = true;
 }

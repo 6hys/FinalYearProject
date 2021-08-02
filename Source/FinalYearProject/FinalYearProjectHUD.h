@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI_PauseMenu.h"
 #include "FinalYearProjectHUD.generated.h"
 
 UCLASS()
@@ -17,9 +18,18 @@ public:
 	/** Primary draw call for the HUD */
 	virtual void DrawHUD() override;
 
+	virtual void BeginPlay() override;
+
+	void SetPaused(bool isPaused);
+
+	TSubclassOf<UUI_PauseMenu> m_PauseMenuClass;
+
+	UUI_PauseMenu* m_PauseMenu;
+
 private:
 	/** Crosshair asset pointer */
 	class UTexture2D* CrosshairTex;
-
+	
+	bool m_isPaused;
 };
 
