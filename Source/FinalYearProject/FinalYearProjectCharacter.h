@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Plant.h"
 #include "FinalYearProjectCharacter.generated.h"
 
 class UInputComponent;
@@ -32,6 +33,9 @@ class AFinalYearProjectCharacter : public ACharacter
 	class UCameraComponent* FirstPersonCameraComponent;
 
 	Equipment m_CurrentlyEquipped;
+
+	UPROPERTY(VisibleAnywhere)
+	APlant* m_CurrentPlant;
 
 	UStaticMesh* m_WateringCanMesh;
 	UStaticMesh* m_SeedMesh;
@@ -85,6 +89,10 @@ protected:
 
 	// Pause the game
 	void Pause();
+
+	// Change the equipped seed
+	void ChangeSeeds(FName name);
+	void RemoveSeeds();
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 

@@ -140,11 +140,18 @@ void AGridBase::Interact(Equipment item)
 		}
 		else if (item == Equipment::Seeds)
 		{
-			UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
+			if (m_Plant->GetStaticMesh() != nullptr)
+			{
+				UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
 
-			// Add pumpkin mesh to the top.
-			m_Plant->SetActive(true);
-			m_State = Planted;
+				// Add pumpkin mesh to the top.
+				m_Plant->SetActive(true);
+				m_State = Planted;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Display, TEXT("No mesh, couldn't plant"));
+			}
 		}
 		break;
 	case Watered:
@@ -163,12 +170,19 @@ void AGridBase::Interact(Equipment item)
 	case WateredAndTilled:
 		if (item == Equipment::Seeds)
 		{
-			UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
+			if (m_Plant->GetStaticMesh() != nullptr)
+			{
+				UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
 
-			// Add pumpkin mesh to the top.
-			m_Plant->SetActive(true);
+				// Add pumpkin mesh to the top.
+				m_Plant->SetActive(true);
 
-			m_State = WateredAndPlanted;
+				m_State = WateredAndPlanted;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Display, TEXT("No mesh, couldn't plant"));
+			}
 		}
 		break;
 	case Planted:

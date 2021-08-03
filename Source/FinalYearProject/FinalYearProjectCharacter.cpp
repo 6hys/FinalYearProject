@@ -60,11 +60,10 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter()
 		m_WateringCanMesh = wateringCan.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> pumpkin(TEXT("/Game/LowPolyFarm/Meshes/Plants/Mesh_Plants_Millet_02.Mesh_Plants_Millet_02"));
-	if (pumpkin.Succeeded())
-	{
-		m_SeedMesh = pumpkin.Object;
-	}
+	m_SeedMesh = nullptr;
+	m_CurrentPlant = nullptr;
+	// TEMP
+	ChangeSeeds(FName(TEXT("Carrot")));
 
 	m_CurrentlyEquipped = Equipment::None;
 	m_CurrentOffset = FVector(0, 0, 0);
@@ -167,7 +166,7 @@ void AFinalYearProjectCharacter::Interact()
 	if (hit.GetActor())
 	{
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
-		if (m_CurrentlyEquipped == Seeds)
+		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr)
 		{
 			hitTile->SetPlantMesh(m_SeedMesh);
 		}
@@ -204,7 +203,14 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 		case Seeds:
 			UE_LOG(LogTemp, Display, TEXT("Equipping Seeds"));
 			FP_Equipment->SetActive(true);
-			FP_Equipment->SetStaticMesh(m_SeedMesh);
+			if (m_SeedMesh != nullptr)
+			{
+				FP_Equipment->SetStaticMesh(m_SeedMesh);
+			}
+			else
+			{
+				FP_Equipment->SetStaticMesh(NULL);
+			}
 			m_CurrentOffset = FVector(0, 19, -15);
 			FP_Equipment->AddLocalOffset(m_CurrentOffset);
 			break;
@@ -222,4 +228,27 @@ void AFinalYearProjectCharacter::Pause()
 	hud->SetPaused(true);
 	controller->SetPause(true);
 	controller->bShowMouseCursor = true;
+}
+
+void AFinalYearProjectCharacter::ChangeSeeds(FName name)
+{
+	m_CurrentPlant = NewObject<APlant>();
+
+	m_CurrentPlant->init(name);
+
+	m_SeedMesh = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, *(m_CurrentPlant->GetFilePath())));
+
+	//m_CurrentPlant->init(FName(TEXT("Carrot")));
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> plant(*(m_CurrentPlant->GetFilePath()));
+	//if (plant.Succeeded())
+	//{
+	//	m_SeedMesh = plant.Object;
+	//}
+
+}
+
+void AFinalYearProjectCharacter::RemoveSeeds()
+{
+	m_SeedMesh = nullptr;
+	m_CurrentPlant = nullptr;
 }
