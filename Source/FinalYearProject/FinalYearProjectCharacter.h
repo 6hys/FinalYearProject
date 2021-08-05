@@ -40,9 +40,11 @@ class AFinalYearProjectCharacter : public ACharacter
 	APlant* m_CurrentPlant;
 
 	UStaticMesh* m_WateringCanMesh;
+	UStaticMesh* m_RakeMesh;
 	UStaticMesh* m_SeedMesh;
 
 	FVector m_CurrentOffset;
+	FRotator m_CurrentRotation;
 
 public:
 	AFinalYearProjectCharacter(const FObjectInitializer& ObjectInitializer);
@@ -105,6 +107,10 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<class UUI_RadialHUD> m_RadialHUDClass;
+
+	// Hotbar
+	class UUI_Hotbar* m_Hotbar;
+	TSubclassOf<class UUI_Hotbar> m_HotbarClass;
 
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);

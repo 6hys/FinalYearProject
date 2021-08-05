@@ -20,6 +20,7 @@
 #include "FinalYearProjectPlayerController.h"
 #include "UI_SeedItem.h"
 #include "UI_RadialHUD.h"
+#include "UI_Hotbar.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -65,6 +66,13 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 		m_WateringCanMesh = wateringCan.Object;
 	}
 
+	// Get the Rake mesh
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> rake(TEXT("/Game/LowPolyFarm/Meshes/Props/Mesh_Props_Rake_01.Mesh_Props_Rake_01"));
+	if (rake.Succeeded())
+	{
+		m_RakeMesh = rake.Object;
+	}
+
 	// Initialise the seeds to null
 	m_SeedMesh = nullptr;
 	m_CurrentPlant = nullptr;
@@ -76,6 +84,13 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 	if (radialHUD.Succeeded())
 	{
 		m_RadialHUDClass = radialHUD.Class;
+	}
+
+	// Get the hotbar
+	static ConstructorHelpers::FClassFinder<UUI_Hotbar> hotbar(TEXT("/Game/FirstPerson/UI/Hotbar"));
+	if(hotbar.Succeeded())
+	{
+		m_HotbarClass = hotbar.Class;
 	}
 
 	m_CurrentlyEquipped = Equipment::None;
@@ -90,12 +105,25 @@ void AFinalYearProjectCharacter::BeginPlay()
 	// Attach watering can mesh to character.
 	FP_Equipment->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
+	FP_Equipment->SetStaticMesh(m_RakeMesh);
+	m_CurrentOffset = FVector(-6.0, -3.0, 34.0);
+	FP_Equipment->SetRelativeLocation(m_CurrentOffset);
+	m_CurrentRotation = FRotator(338.0, 220.0, 0.0);
+	FP_Equipment->SetRelativeRotation(m_CurrentRotation);
+
 	Mesh1P->SetHiddenInGame(false, true);
 
 	// Create the radial menu HUD
 	if (m_RadialHUDClass)
 	{
 		m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
+	}
+
+	// Create the hotbar
+	if (m_HotbarClass)
+	{
+		m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
+		m_Hotbar->AddToViewport(9999);
 	}
 }
 
@@ -208,17 +236,18 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 {
 	if (m_CurrentlyEquipped != newEquip)
 	{
-		FP_Equipment->AddLocalOffset(m_CurrentOffset * -1);
-
 		switch (newEquip)
 		{
 		case None:
 			// Not holding anything. This is used for tilling the ground currently.
 			UE_LOG(LogTemp, Display, TEXT("Equipping None"));
-			FP_Equipment->SetStaticMesh(NULL);
-			FP_Equipment->SetActive(false);
-			FP_Equipment->ResetRelativeTransform();
-			m_CurrentOffset = FVector(0, 0, 0);
+			FP_Equipment->SetStaticMesh(m_RakeMesh);
+			FP_Equipment->SetActive(true);
+			m_CurrentOffset = FVector(-6.0, -3.0, 34.0);
+			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
+			m_CurrentRotation = FRotator(338.0, 220.0, 0.0);
+			FP_Equipment->SetRelativeRotation(m_CurrentRotation);
+			m_Hotbar->SetSelected(int(None));
 			break;
 		case Watering_Can:
 			// Equip watering can
@@ -226,7 +255,9 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 			FP_Equipment->SetActive(true);
 			FP_Equipment->SetStaticMesh(m_WateringCanMesh);
 			m_CurrentOffset = FVector(0, 19, -15);
-			FP_Equipment->AddLocalOffset(m_CurrentOffset);
+			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
+			FP_Equipment->SetRelativeRotation(FRotator(0.0f));
+			m_Hotbar->SetSelected(int(Watering_Can));
 			break;
 		case Seeds:
 			// Equip seeds if possible
@@ -241,7 +272,9 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 				FP_Equipment->SetStaticMesh(NULL);
 			}
 			m_CurrentOffset = FVector(0, 19, -15);
-			FP_Equipment->AddLocalOffset(m_CurrentOffset);
+			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
+			FP_Equipment->SetRelativeRotation(FRotator(0.0f));
+			m_Hotbar->SetSelected(int(Seeds));
 			break;
 		}
 
@@ -270,6 +303,13 @@ void AFinalYearProjectCharacter::ChangeSeeds(FName name)
 
 	// Update the seed mesh at runtime
 	m_SeedMesh = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, *(m_CurrentPlant->GetFilePath())));
+
+	// Force the equipment to change in the players hands.
+	if (m_CurrentlyEquipped == Equipment::Seeds)
+	{
+		UE_LOG(LogTemp, Display, TEXT("changing equipped seed mesh"));
+		FP_Equipment->SetStaticMesh(m_SeedMesh);
+	}
 }
 
 void AFinalYearProjectCharacter::RemoveSeeds()
@@ -293,7 +333,7 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 		controller->SetIgnoreMoveInput(true);
 
 		// Play animation?
-		//m_RadialHUD->PlayAnimation(m_RadialHUD->InOut);
+		m_RadialHUD->PlayAnimation(m_RadialHUD->InOut);
 
 		// Set radial menu open and make the opacity 1
 		m_RadialHUD->RadialMenu->SetIsOpen(true);
@@ -322,11 +362,14 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 		controller->SetInputMode(FInputModeGameOnly());
 
 		// play animation?
-		// UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
-		// m_RadialHUD->PlayAnimation(m_RadialHUD->InOut, 0.0f, 1, EUMGSequencePlayMode::Reverse);
+		 m_RadialHUD->PlayAnimation(m_RadialHUD->InOut, 0.0f, 1, EUMGSequencePlayMode::Reverse);
 
 		// Set radial menu closed and make opacity 0 
 		m_RadialHUD->RadialMenu->SetIsOpen(false);
 		m_RadialHUD->RadialMenu->SetOpacity(0.0f);
+
+		FString currentSeed = m_RadialHUD->RadialMenu->GetCurrentItem()->GetName();
+
+		ChangeSeeds(*currentSeed);
 	}
 }

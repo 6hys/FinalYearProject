@@ -33,6 +33,5 @@ private:
 	class UTexture2D* CrosshairTex;
 
 	bool m_isPaused;
-	bool m_openRadial;
 };
 

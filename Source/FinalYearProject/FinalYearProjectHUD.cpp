@@ -22,7 +22,6 @@ AFinalYearProjectHUD::AFinalYearProjectHUD()
 	}
 
 	m_isPaused = false;
-	m_openRadial = false;
 }
 
 void AFinalYearProjectHUD::BeginPlay()

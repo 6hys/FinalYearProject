@@ -279,3 +279,8 @@ TArray<UUI_SeedItem*> UUI_RadialMenu::GetSeedItems()
 {
 	return m_SeedItems;
 }
+
+UUI_SeedItem* UUI_RadialMenu::GetCurrentItem()
+{
+	return m_CurrentItem;
+}

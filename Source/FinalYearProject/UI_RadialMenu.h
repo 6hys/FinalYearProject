@@ -48,6 +48,8 @@ public:
 	// TEMP?
 	void SetupSeedItems();
 
+	UUI_SeedItem* GetCurrentItem();
+
 private:
 
 	virtual void NativePreConstruct() override;
