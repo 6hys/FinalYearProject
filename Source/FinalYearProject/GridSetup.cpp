@@ -19,6 +19,7 @@ void AGridSetup::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Draw the grid of tiles
 	for (int i = 1; i <= m_GridX; i++)
 	{
 		for (int j = 1; j <= m_GridY; j++)

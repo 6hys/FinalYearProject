@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/TimelineComponent.h"
+
 #include "Plant.h"
 #include "FinalYearProjectCharacter.generated.h"
 
@@ -24,7 +26,7 @@ class AFinalYearProjectCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	class USkeletalMeshComponent* Mesh1P;
 	
-	/** Watering Can mesh */
+	/** Equipment mesh */
 	UPROPERTY(VisibleAnywhere, Category=Mesh)
 	class UStaticMeshComponent* FP_Equipment;
 
@@ -43,7 +45,7 @@ class AFinalYearProjectCharacter : public ACharacter
 	FVector m_CurrentOffset;
 
 public:
-	AFinalYearProjectCharacter();
+	AFinalYearProjectCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay();
@@ -71,12 +73,11 @@ protected:
 	void TurnAtRate(float Rate);
 
 	/**
-	 * Called via input to turn look up/down at a given rate.
+	 * Called via input to turn look up/down at a given rate.s
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
 	
-protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
@@ -90,9 +91,21 @@ protected:
 	// Pause the game
 	void Pause();
 
+	// Radial menu functions
+	void OpenRadialMenu();
+	void CloseRadialMenu();
+
 	// Change the equipped seed
 	void ChangeSeeds(FName name);
 	void RemoveSeeds();
+
+	// Radial menu HUD
+	UPROPERTY()
+	class UUI_RadialHUD* m_RadialHUD;
+
+	UPROPERTY()
+	TSubclassOf<class UUI_RadialHUD> m_RadialHUDClass;
+
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 

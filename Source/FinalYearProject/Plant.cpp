@@ -27,6 +27,7 @@ void APlant::init(FName name)
 	static const FString ContextString(TEXT("GENERAL"));
 	FSeedData* rowLookUp = m_SeedDataTable->FindRow<FSeedData>(name, ContextString);
 
+	// Initialise info from the data table
 	m_Name = rowLookUp->Name;
 	m_Price = rowLookUp->Price;
 	m_Value = rowLookUp->Value;

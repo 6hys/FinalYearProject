@@ -11,6 +11,7 @@
 UUI_PauseMenu::UUI_PauseMenu(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	// Setup the player controller
 	auto world = GetWorld();
 	if (world)
 	{
@@ -20,6 +21,7 @@ UUI_PauseMenu::UUI_PauseMenu(const FObjectInitializer& ObjectInitializer)
 	bIsFocusable = true;
 }
 
+// Quit the game
 void UUI_PauseMenu::Quit()
 {
 	if (m_Controller)
@@ -36,6 +38,7 @@ void UUI_PauseMenu::Quit()
 	}
 }
 
+// Close the pause menu
 void UUI_PauseMenu::Resume()
 {
 	if (m_Controller)
@@ -54,6 +57,7 @@ void UUI_PauseMenu::Resume()
 	}
 }
 
+// Hide the HUD - Open the pause menu or quit the game 
 void UUI_PauseMenu::RemoveHUD()
 {
 	AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(m_Controller->GetHUD());

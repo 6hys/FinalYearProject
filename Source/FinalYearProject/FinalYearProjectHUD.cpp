@@ -5,6 +5,7 @@
 #include "Engine/Texture2D.h"
 #include "TextureResource.h"
 #include "CanvasItem.h"
+#include "Components/CanvasPanelSlot.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFinalYearProjectHUD::AFinalYearProjectHUD()
@@ -13,6 +14,7 @@ AFinalYearProjectHUD::AFinalYearProjectHUD()
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPerson/Textures/FirstPersonCrosshair"));
 	CrosshairTex = CrosshairTexObj.Object;
 
+	// Get the pause menu blueprint
 	static ConstructorHelpers::FClassFinder<UUI_PauseMenu> PauseMenu(TEXT("/Game/FirstPerson/UI/PauseMenu"));
 	if (PauseMenu.Succeeded())
 	{
@@ -20,12 +22,14 @@ AFinalYearProjectHUD::AFinalYearProjectHUD()
 	}
 
 	m_isPaused = false;
+	m_openRadial = false;
 }
 
 void AFinalYearProjectHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Create the pause menu widget
 	if (m_PauseMenuClass)
 	{
 		m_PauseMenu = CreateWidget<UUI_PauseMenu>(GetWorld(), m_PauseMenuClass);
@@ -40,6 +44,8 @@ void AFinalYearProjectHUD::DrawHUD()
 
 	if (m_isPaused)
 	{
+		// TEMP SPACE
+		// I'll probably have to use this later
 	}
 	else
 	{
@@ -67,10 +73,12 @@ void AFinalYearProjectHUD::SetPaused(bool isPaused)
 	{
 		AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
 
+		// Update the input mode
 		FInputModeUIOnly inputMode;
 		inputMode.SetWidgetToFocus(m_PauseMenu->GetCachedWidget());
 		controller->SetInputMode(inputMode);
 
+		// Display the pause menu
 		m_PauseMenu->AddToViewport(9999);
 	}
 }

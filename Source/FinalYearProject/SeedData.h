@@ -31,6 +31,8 @@ public:
 	// Asset path
 	// Initial size?
 	// Growth multiplier?
+	// Icon Image
+	// Amount
 	*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
@@ -47,4 +49,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
 	FString AssetPath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	FString ImagePath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	int Amount;
 };

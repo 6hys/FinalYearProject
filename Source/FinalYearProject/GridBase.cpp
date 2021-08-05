@@ -23,12 +23,14 @@ AGridBase::AGridBase()
 	m_Box->SetCollisionProfileName(FName(TEXT("Custom")));
 	m_Box->SetCollisionObjectType(ECC_GameTraceChannel2);
 
+	// Stores the dirt texture
 	m_Tile->SetupAttachment(m_Box);
 	m_Tile->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	m_Tile->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	m_Tile->SetCollisionProfileName(FName(TEXT("NoCollision")));
 	m_Tile->CastShadow = false;
 
+	// TODO: Visible only when looking at the tile. Will show information like growth%,  plant name, ect.
 	m_Highlight->SetupAttachment(m_Tile);
 	m_Highlight->SetRelativeLocation(FVector(0.0f, 0.0f, 2.0f));
 	m_Highlight->SetCollisionProfileName(FName(TEXT("NoCollision")));
@@ -42,6 +44,7 @@ AGridBase::AGridBase()
 		m_Highlight->SetStaticMesh(highlight.Object);
 	}
 
+	// Meshes for dirt tiles
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> planted(TEXT("/Game/LowPolyFarm/Meshes/Landscape/Mesh_Landscape_Mud_02.Mesh_Landscape_Mud_02"));
 	if (planted.Succeeded())
 	{
@@ -144,7 +147,7 @@ void AGridBase::Interact(Equipment item)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
 
-				// Add pumpkin mesh to the top.
+				// Add plant mesh to the top.
 				m_Plant->SetActive(true);
 				m_State = Planted;
 			}
@@ -174,7 +177,7 @@ void AGridBase::Interact(Equipment item)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
 
-				// Add pumpkin mesh to the top.
+				// Add plant mesh to the top.
 				m_Plant->SetActive(true);
 
 				m_State = WateredAndPlanted;
