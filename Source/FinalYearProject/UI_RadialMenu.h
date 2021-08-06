@@ -30,13 +30,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UCanvasPanel* Canvas;
 
-	UFUNCTION(BlueprintCallable, Category = "My Functions")
 	void CreateItems();
 
-	UFUNCTION(BlueprintCallable, Category = "My Functions")
 	void SetWidgetSize(FVector2D size);
 
-	UFUNCTION(BlueprintCallable, Category = "My Functions")
 	void SetWidgetCenterPoint(FVector2D point);
 
 	bool GetIsOpen();

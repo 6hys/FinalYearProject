@@ -44,6 +44,8 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 
 	UStaticMesh* m_UnplantedMesh;
 	UStaticMesh* m_PlantedMesh;
+
+	APlant* m_CurrentPlant;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -63,4 +65,6 @@ public:
 	void Interact(Equipment item);
 
 	void SetPlantMesh(UStaticMesh* mesh);
+
+	void SetCurrentPlant(APlant* plant);
 };

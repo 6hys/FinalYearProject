@@ -7,6 +7,7 @@
 
 #include "FinalYearProjectCharacter.h"
 #include "FinalYearProjectHUD.h"
+#include "UI_Hotbar.h"
 
 UUI_PauseMenu::UUI_PauseMenu(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -54,6 +55,14 @@ void UUI_PauseMenu::Resume()
 		AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(m_Controller->GetHUD());
 
 		hud->SetPaused(false);
+
+		AFinalYearProjectCharacter* character = Cast<AFinalYearProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		// Only show the hotbar if the inventory isnt open
+		if (character->IsInventoryOpen() == false)
+		{
+			character->GetHotbar()->AddToViewport(9999);
+			character->GetHotbar()->SetSelected(character->GetCurrentlyEquipped());
+		}
 	}
 }
 

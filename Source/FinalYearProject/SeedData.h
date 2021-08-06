@@ -36,7 +36,10 @@ public:
 	*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
-	FString Name;
+	FString RowName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	FString SeedName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
 	int Price;
@@ -55,4 +58,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
 	int Amount;
+
+	// overload == operator
+	bool operator==(const FSeedData& b) const;
 };

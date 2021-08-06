@@ -40,16 +40,14 @@ void UUI_SeedItem::NativeConstruct()
 
 void UUI_SeedItem::init(FSeedData seed)
 {
-	m_Name = seed.Name;
+	m_Name = seed.RowName;
+	m_SeedName = seed.SeedName;
 	m_Amount = seed.Amount;
 
 	m_ImageTexture = Cast<UTexture>(StaticLoadObject(UTexture::StaticClass(), NULL, *(seed.ImagePath)));
 
 	if (ItemImage)
 	{
-	//	ItemImage->SetBrushFromTexture(m_ImageTexture, false);
-	//	ItemImage->Brush.DrawAs = ESlateBrushDrawType::Image;
-	//	ItemImage->Brush.ImageType = ESlateBrushImageType::FullColor;
 		ItemImage->GetDynamicMaterial()->SetTextureParameterValue(FName(TEXT("Image")), m_ImageTexture);
 	}
 }

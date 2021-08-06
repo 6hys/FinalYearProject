@@ -43,6 +43,7 @@ private:
 
 	// Name of item
 	FString m_Name;
+	FString m_SeedName;
 
 //	UFUNCTION(BlueprintCallable, Category = "My Functions")
 };

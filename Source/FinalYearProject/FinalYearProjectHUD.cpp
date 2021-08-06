@@ -39,6 +39,9 @@ void AFinalYearProjectHUD::BeginPlay()
 
 void AFinalYearProjectHUD::DrawHUD()
 {
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+
 	Super::DrawHUD();
 
 	if (m_isPaused)
@@ -66,6 +69,8 @@ void AFinalYearProjectHUD::DrawHUD()
 
 void AFinalYearProjectHUD::SetPaused(bool isPaused)
 {
+	if (m_isPaused == isPaused) return;
+
 	m_isPaused = isPaused;
 
 	if(isPaused)

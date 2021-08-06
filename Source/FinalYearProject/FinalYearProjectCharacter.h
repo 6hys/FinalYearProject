@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Components/TimelineComponent.h"
 
 #include "Plant.h"
 #include "FinalYearProjectCharacter.generated.h"
@@ -101,6 +100,9 @@ protected:
 	void ChangeSeeds(FName name);
 	void RemoveSeeds();
 
+	// Inventory function
+	void ToggleInventory();
+
 	// Radial menu HUD
 	UPROPERTY()
 	class UUI_RadialHUD* m_RadialHUD;
@@ -112,6 +114,12 @@ protected:
 	class UUI_Hotbar* m_Hotbar;
 	TSubclassOf<class UUI_Hotbar> m_HotbarClass;
 
+	// Inventory
+	class UUI_Inventory* m_Inventory;
+	TSubclassOf<class UUI_Inventory> m_InventoryClass;
+	bool m_IsInventoryOpen;
+
+	class AFinalYearProjectPlayerController* m_Controller;
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 
@@ -120,6 +128,13 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+	// Returns the hotbar object
+	FORCEINLINE class UUI_Hotbar* GetHotbar() { return m_Hotbar; }
+	// Check if inventory is open
+	FORCEINLINE bool IsInventoryOpen() { return m_IsInventoryOpen; }
+	// Returns the inventory
+	FORCEINLINE class UUI_Inventory* GetInventory() { return m_Inventory; }
+	// Get whats currently equipped
+	FORCEINLINE int GetCurrentlyEquipped() { return m_CurrentlyEquipped; }
 };
 

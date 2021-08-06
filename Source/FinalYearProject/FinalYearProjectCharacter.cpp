@@ -1,26 +1,28 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "FinalYearProjectCharacter.h"
-#include "GridBase.h"
+
 #include "Animation/AnimInstance.h"
+#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Blueprint/UserWidget.h"
 #include "UObject/Object.h"
-#include "Kismet/GameplayStatics.h"
+
 #include "FinalYearProjectHUD.h"
 #include "FinalYearProjectPlayerController.h"
-#include "UI_SeedItem.h"
-#include "UI_RadialHUD.h"
+#include "GridBase.h"
 #include "UI_Hotbar.h"
+#include "UI_Inventory.h"
+#include "UI_RadialHUD.h"
+#include "UI_SeedItem.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -76,8 +78,6 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 	// Initialise the seeds to null
 	m_SeedMesh = nullptr;
 	m_CurrentPlant = nullptr;
-	// TEMP
-	ChangeSeeds(FName(TEXT("Carrot")));
 
 	// Get the radial menu HUD
 	static ConstructorHelpers::FClassFinder<UUI_RadialHUD> radialHUD(TEXT("/Game/FirstPerson/UI/RadialMenu/RadialHUD"));
@@ -93,6 +93,14 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 		m_HotbarClass = hotbar.Class;
 	}
 
+	// Get the inventory
+	static ConstructorHelpers::FClassFinder<UUI_Inventory> inventory(TEXT("/Game/FirstPerson/UI/Inventory"));
+	if (inventory.Succeeded())
+	{
+		m_InventoryClass = inventory.Class;
+	}
+	m_IsInventoryOpen = false;
+
 	m_CurrentlyEquipped = Equipment::None;
 	m_CurrentOffset = FVector(0, 0, 0);
 }
@@ -101,6 +109,9 @@ void AFinalYearProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	// Setup the controller 
+	m_Controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
 
 	// Attach watering can mesh to character.
 	FP_Equipment->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
@@ -113,17 +124,29 @@ void AFinalYearProjectCharacter::BeginPlay()
 
 	Mesh1P->SetHiddenInGame(false, true);
 
-	// Create the radial menu HUD
-	if (m_RadialHUDClass)
-	{
-		m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
-	}
+	// TEMP
+	ChangeSeeds(FName(TEXT("Carrot")));
 
-	// Create the hotbar
-	if (m_HotbarClass)
+	// Don't display in pause menu
+	if (GetWorld()->GetMapName() != FString("UEDPIE_0_MainMenu"))
 	{
-		m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
-		m_Hotbar->AddToViewport(9999);
+		// Create the radial menu HUD
+		if (m_RadialHUDClass)
+		{
+			m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
+		}
+
+		// Create the hotbar
+		if (m_HotbarClass)
+		{
+			m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
+			m_Hotbar->AddToViewport(9999);
+		}
+
+		if (m_InventoryClass)
+		{
+			m_Inventory = CreateWidget<UUI_Inventory>(GetWorld(), m_InventoryClass);
+		}
 	}
 }
 
@@ -157,6 +180,9 @@ void AFinalYearProjectCharacter::SetupPlayerInputComponent(class UInputComponent
 	// Bind radial menu events
 	PlayerInputComponent->BindAction("RadialMenu", IE_Pressed, this, &AFinalYearProjectCharacter::OpenRadialMenu);
 	PlayerInputComponent->BindAction("RadialMenu", IE_Released, this, &AFinalYearProjectCharacter::CloseRadialMenu);
+
+	// Bind inventory event
+	PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &AFinalYearProjectCharacter::ToggleInventory);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -199,6 +225,9 @@ void AFinalYearProjectCharacter::LookUpAtRate(float Rate)
 
 void AFinalYearProjectCharacter::Interact()
 {
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+
 	// https://www.youtube.com/watch?v=GfsnOiwKJcY&ab_channel=DevEnabled
 
 	FVector start;
@@ -222,6 +251,7 @@ void AFinalYearProjectCharacter::Interact()
 		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr)
 		{
 			hitTile->SetPlantMesh(m_SeedMesh);
+			hitTile->SetCurrentPlant(m_CurrentPlant);
 		}
 		hitTile->Interact(m_CurrentlyEquipped);
 	}
@@ -234,6 +264,9 @@ void AFinalYearProjectCharacter::Interact()
 
 void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 {
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+
 	if (m_CurrentlyEquipped != newEquip)
 	{
 		switch (newEquip)
@@ -285,13 +318,17 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 
 void AFinalYearProjectCharacter::Pause()
 {
-	// Get the controller and the hud so we can pause the game
-	AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
-	AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(controller->GetHUD());
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+
+	// Get the hud so we can pause the game
+	AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(m_Controller->GetHUD());
 
 	hud->SetPaused(true);
-	controller->SetPause(true);
-	controller->bShowMouseCursor = true;
+	m_Controller->SetPause(true);
+	m_Controller->bShowMouseCursor = true;
+
+	m_Hotbar->RemoveFromViewport();
 }
 
 void AFinalYearProjectCharacter::ChangeSeeds(FName name)
@@ -323,14 +360,20 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 {
 	UE_LOG(LogTemp, Display, TEXT("Open Radial Menu"));
 
-	if (!m_RadialHUD->RadialMenu->GetIsOpen())
-	{
-		// Get the controller
-		AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
 
+	// Check the inventory isnt open
+	if (!m_RadialHUD->RadialMenu->GetIsOpen() && m_IsInventoryOpen == false)
+	{
 		// stop player movement
-		controller->SetIgnoreLookInput(true);
-		controller->SetIgnoreMoveInput(true);
+		m_Controller->SetIgnoreLookInput(true);
+		m_Controller->SetIgnoreMoveInput(true);
+
+		// Set mouse to center of screen
+		int X, Y;
+		m_Controller->GetViewportSize(X, Y);
+		m_Controller->SetMouseLocation(X / 2, Y / 2);
 
 		// Play animation?
 		m_RadialHUD->PlayAnimation(m_RadialHUD->InOut);
@@ -348,18 +391,18 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 {
 	UE_LOG(LogTemp, Display, TEXT("Close Radial Menu"));
 
+	// Do nothing on the main menu.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+
 	if (m_RadialHUD->RadialMenu->GetIsOpen())
 	{
 		// Remove HUD from viewport
 		m_RadialHUD->RemoveFromViewport();
 
-		// Get the controller
-		AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
-
 		// free player movement
-		controller->SetIgnoreLookInput(false);
-		controller->SetIgnoreMoveInput(false);
-		controller->SetInputMode(FInputModeGameOnly());
+		m_Controller->SetIgnoreLookInput(false);
+		m_Controller->SetIgnoreMoveInput(false);
+		m_Controller->SetInputMode(FInputModeGameOnly());
 
 		// play animation?
 		 m_RadialHUD->PlayAnimation(m_RadialHUD->InOut, 0.0f, 1, EUMGSequencePlayMode::Reverse);
@@ -371,5 +414,49 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 		FString currentSeed = m_RadialHUD->RadialMenu->GetCurrentItem()->GetName();
 
 		ChangeSeeds(*currentSeed);
+	}
+}
+
+void AFinalYearProjectCharacter::ToggleInventory()
+{
+	UE_LOG(LogTemp, Display, TEXT("Toggle Inventory"));
+
+	// Do nothing on the main menu or with the radial menu open.
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu") || m_RadialHUD->RadialMenu->GetIsOpen() == true) return;
+
+	if (m_IsInventoryOpen)
+	{
+		// Close inventory
+		m_Inventory->RemoveFromViewport();
+
+		// free player movement
+		m_Controller->bShowMouseCursor = false;
+		m_Controller->SetIgnoreLookInput(false);
+		m_Controller->SetIgnoreMoveInput(false);
+		m_Controller->SetInputMode(FInputModeGameOnly());
+
+		m_Hotbar->AddToViewport(9999);
+		m_Hotbar->SetSelected(m_CurrentlyEquipped);
+
+		m_IsInventoryOpen = false;
+	}
+	else
+	{
+		// Open inventory
+		m_Inventory->AddToViewport(9999);
+
+		// Set mouse to center of screen
+		int X, Y;
+		m_Controller->GetViewportSize(X, Y);
+		m_Controller->SetMouseLocation(X / 2, Y / 2);
+
+		// stop player movement
+		m_Controller->bShowMouseCursor = true;
+		m_Controller->SetIgnoreLookInput(true);
+		m_Controller->SetIgnoreMoveInput(true);
+
+		m_Hotbar->RemoveFromViewport();
+
+		m_IsInventoryOpen = true;
 	}
 }

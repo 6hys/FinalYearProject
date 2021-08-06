@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+#include "SeedData.h"
 #include "Plant.generated.h"
 
 UCLASS()
@@ -14,6 +15,9 @@ class FINALYEARPROJECT_API APlant : public AActor
 	
 	// Plant name
 	FString m_Name;
+
+	// Seed name
+	FString m_SeedName;
 
 	// Mesh file path
 	FString m_FilePath;
@@ -28,6 +32,8 @@ class FINALYEARPROJECT_API APlant : public AActor
 	int m_GrowthSpeed;
 
 	UDataTable* m_SeedDataTable;
+
+	FSeedData* m_SeedData;
 
 public:	
 	// Sets default values for this actor's properties
@@ -47,4 +53,6 @@ public:
 	FString GetFilePath();
 	int GetValue();
 	int GetPrice();
+
+	FORCEINLINE FSeedData* GetSeedData() { return m_SeedData; }
 };

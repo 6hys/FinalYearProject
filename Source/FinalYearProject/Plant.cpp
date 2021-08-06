@@ -3,7 +3,6 @@
 
 #include "Plant.h"
 #include "UObject/ConstructorHelpers.h"
-#include "SeedData.h"
 
 // Empty constructor
 APlant::APlant()
@@ -25,14 +24,15 @@ APlant::APlant()
 void APlant::init(FName name)
 {
 	static const FString ContextString(TEXT("GENERAL"));
-	FSeedData* rowLookUp = m_SeedDataTable->FindRow<FSeedData>(name, ContextString);
+	m_SeedData = m_SeedDataTable->FindRow<FSeedData>(name, ContextString);
 
 	// Initialise info from the data table
-	m_Name = rowLookUp->Name;
-	m_Price = rowLookUp->Price;
-	m_Value = rowLookUp->Value;
-	m_FilePath = rowLookUp->AssetPath;
-	m_GrowthSpeed = rowLookUp->GrowthTime;
+	m_Name = name.ToString();
+	m_SeedName = m_SeedData->SeedName;
+	m_Price = m_SeedData->Price;
+	m_Value = m_SeedData->Value;
+	m_FilePath = m_SeedData->AssetPath;
+	m_GrowthSpeed = m_SeedData->GrowthTime;
 }
 
 // Called when the game starts or when spawned
