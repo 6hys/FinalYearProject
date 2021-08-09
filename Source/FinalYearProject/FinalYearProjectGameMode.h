@@ -27,7 +27,6 @@ protected:
 
 	/** The widget class we will use as our menu when the game starts. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UMG Game")
-		TSubclassOf<UUserWidget> StartingWidgetClass;
 		TSubclassOf<UUserWidget> m_StartingWidgetClass;
 
 	/** The widget instance that we are using as our menu. */
