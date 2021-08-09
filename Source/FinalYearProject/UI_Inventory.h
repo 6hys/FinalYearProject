@@ -33,6 +33,8 @@ public:
 
 	void AddToInventory(FSeedData data, ItemType type);
 
+	void Refresh();
+
 private:
 	// Arrays to store the information about the items
 	TArray<FSeedData> m_SeedItems;
@@ -40,5 +42,13 @@ private:
 	
 	TSubclassOf<class UUI_InventoryItem> m_ItemClass;
 
-	void Refresh();
+public:
+	// Get seed inventory
+	FORCEINLINE TArray<FSeedData> GetSeedInventory() { return m_SeedItems; }
+	// Get crop inventory
+	FORCEINLINE TArray<FSeedData> GetCropInventory() { return m_CropItems; }
+	// Set seed inventory 
+	FORCEINLINE void SetSeedInventory(TArray<FSeedData> seeds) { m_SeedItems = seeds; }
+	// Set crop inventory
+	FORCEINLINE void SetCropInventory(TArray<FSeedData> crops) { m_CropItems = crops; }
 };

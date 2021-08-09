@@ -19,6 +19,14 @@ struct FSeedData : public FTableRowBase
 public:
 
 	FSeedData()
+		: RowName(FString("")),
+		  SeedName(FString("")),
+		  Price(0),
+		  Value(0),
+		  GrowthTime(0),
+		  AssetPath(FString("")),
+		  ImagePath(FString("")),
+		  Amount(0)
 	{
 
 	};

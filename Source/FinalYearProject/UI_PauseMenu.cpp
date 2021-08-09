@@ -60,6 +60,8 @@ void UUI_PauseMenu::Resume()
 		// Only show the hotbar if the inventory isnt open
 		if (character->IsInventoryOpen() == false)
 		{
+			// create new hotbar 
+			character->MakeNewHotbar();
 			character->GetHotbar()->AddToViewport(9999);
 			character->GetHotbar()->SetSelected(character->GetCurrentlyEquipped());
 		}

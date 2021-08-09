@@ -123,7 +123,7 @@ void AGridBase::Interact(Equipment item)
 			m_Tile->SetMaterial(0, m_GridMaterial);
 			m_State = Watered;
 		}
-		else if (item == Equipment::None)
+		else if (item == Equipment::Rake)
 		{
 			UE_LOG(LogTemp, Display, TEXT("Tilling %s"), *GetName());
 
@@ -163,7 +163,7 @@ void AGridBase::Interact(Equipment item)
 		}
 		break;
 	case Watered:
-		if (item == Equipment::None)
+		if (item == Equipment::Rake)
 		{
 			UE_LOG(LogTemp, Display, TEXT("Tilling %s"), *GetName());
 

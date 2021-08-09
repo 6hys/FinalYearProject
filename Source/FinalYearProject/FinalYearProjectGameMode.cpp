@@ -1,10 +1,12 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "FinalYearProjectGameMode.h"
-#include "FinalYearProjectHUD.h"
-#include "FinalYearProjectCharacter.h"
-#include "FinalYearProjectPlayerController.h"
+
+#include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
+
+#include "FinalYearProjectHUD.h"
+#include "FinalYearProjectPlayerController.h"
 
 AFinalYearProjectGameMode::AFinalYearProjectGameMode()
 	: Super()
@@ -18,28 +20,41 @@ AFinalYearProjectGameMode::AFinalYearProjectGameMode()
 
 	// player controller
 	PlayerControllerClass = AFinalYearProjectPlayerController::StaticClass();
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> mainMenu(TEXT("/Game/FirstPerson/UI/MainMenu"));
+	if (mainMenu.Succeeded())
+	{
+		m_StartingWidgetClass = mainMenu.Class;
+	}
 }
 
-/* Code from https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/ */
 void AFinalYearProjectGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	ChangeMenuWidget(StartingWidgetClass);
+	// controller
+	m_Controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu"))
+	{
+		m_Controller->SetInputMode(FInputModeUIOnly());
+		ChangeMenuWidget(m_StartingWidgetClass);
+	}
 }
 
+/* Code from https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/ProgrammingWithCPP/CPPTutorials/UMG/ */
 void AFinalYearProjectGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass)
 {
-	if (CurrentWidget != nullptr)
+	if (m_CurrentWidget != nullptr)
 	{
-		CurrentWidget->RemoveFromViewport();
-		CurrentWidget = nullptr;
+		m_CurrentWidget->RemoveFromViewport();
+		m_CurrentWidget = nullptr;
 	}
 	if (NewWidgetClass != nullptr)
 	{
-		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewWidgetClass);
-		if (CurrentWidget != nullptr)
+		m_CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewWidgetClass);
+		if (m_CurrentWidget != nullptr)
 		{
-			CurrentWidget->AddToViewport();
+			m_CurrentWidget->AddToViewport();
 		}
 	}
 }

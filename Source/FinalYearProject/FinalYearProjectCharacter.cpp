@@ -16,10 +16,10 @@
 #include "UObject/ConstructorHelpers.h"
 #include "UObject/Object.h"
 
+#include "FinalYearProjectGameInstance.h"
 #include "FinalYearProjectHUD.h"
 #include "FinalYearProjectPlayerController.h"
 #include "GridBase.h"
-#include "UI_Hotbar.h"
 #include "UI_Inventory.h"
 #include "UI_RadialHUD.h"
 #include "UI_SeedItem.h"
@@ -60,6 +60,7 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 	FP_Equipment->CastShadow = false;
 	FP_Equipment->SetupAttachment(Mesh1P, TEXT("GripPoint"));
 	FP_Equipment->SetupAttachment(RootComponent);
+	FP_Equipment->SetActive(true);
 
 	// Get the Watering Can mesh
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> wateringCan(TEXT("/Game/LowPolyFarm/Meshes/Props/Mesh_Props_WateringCan_02.Mesh_Props_WateringCan_02"));
@@ -99,9 +100,9 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 	{
 		m_InventoryClass = inventory.Class;
 	}
-	m_IsInventoryOpen = false;
 
-	m_CurrentlyEquipped = Equipment::None;
+	m_IsInventoryOpen = false;
+	m_CurrentlyEquipped = Equipment::Rake;
 	m_CurrentOffset = FVector(0, 0, 0);
 }
 
@@ -110,8 +111,16 @@ void AFinalYearProjectCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	// Get the game instance
+	m_GameInstance = Cast<UFinalYearProjectGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
 	// Setup the controller 
 	m_Controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+
+	// Initialise player position
+	SetActorLocation(m_GameInstance->GetLoadedPlayerLocation());
+	// https://answers.unrealengine.com/questions/207242/view.html
+	m_Controller->SetControlRotation(m_GameInstance->GetLoadedPlayerRotation());
 
 	// Attach watering can mesh to character.
 	FP_Equipment->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
@@ -127,7 +136,7 @@ void AFinalYearProjectCharacter::BeginPlay()
 	// TEMP
 	ChangeSeeds(FName(TEXT("Carrot")));
 
-	// Don't display in pause menu
+	// Don't display in main menu
 	if (GetWorld()->GetMapName() != FString("UEDPIE_0_MainMenu"))
 	{
 		// Create the radial menu HUD
@@ -141,12 +150,20 @@ void AFinalYearProjectCharacter::BeginPlay()
 		{
 			m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
 			m_Hotbar->AddToViewport(9999);
+			Equip(m_GameInstance->GetLoadedEquip());
 		}
 
 		if (m_InventoryClass)
 		{
 			m_Inventory = CreateWidget<UUI_Inventory>(GetWorld(), m_InventoryClass);
+
+			m_Inventory->SetSeedInventory(m_GameInstance->GetLoadedSeedInventory());
+			m_Inventory->SetCropInventory(m_GameInstance->GetLoadedCropInventory());
 		}
+
+		FName plant = m_GameInstance->GetLoadedPlant();
+		if(plant != NAME_None)
+			ChangeSeeds(m_GameInstance->GetLoadedPlant());
 	}
 }
 
@@ -166,7 +183,7 @@ void AFinalYearProjectCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFinalYearProjectCharacter::Interact);
 
 	// Bind equip events
-	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip1", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::None);
+	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip1", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::Rake);
 	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip2", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::Watering_Can);
 	PlayerInputComponent->BindAction<FEquipDelegate, AFinalYearProjectCharacter, Equipment>("Equip3", IE_Pressed, this, &AFinalYearProjectCharacter::Equip, Equipment::Seeds);
 
@@ -234,7 +251,7 @@ void AFinalYearProjectCharacter::Interact()
 	FRotator rot;
 	FHitResult hit;
 
-	GetController()->GetPlayerViewPoint(start, rot);
+	m_Controller->GetPlayerViewPoint(start, rot);
 
 	// 2000 is the distance it checks for. Need to set this much lower. 
 	FVector end = start + (rot.Vector() * 300);
@@ -248,7 +265,8 @@ void AFinalYearProjectCharacter::Interact()
 	{
 		// Interact with the tile
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
-		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr)
+		// Don't update the tiles plant if its already been planted.
+		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr && hitTile->GetState() < 4 )
 		{
 			hitTile->SetPlantMesh(m_SeedMesh);
 			hitTile->SetCurrentPlant(m_CurrentPlant);
@@ -271,31 +289,23 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 	{
 		switch (newEquip)
 		{
-		case None:
-			// Not holding anything. This is used for tilling the ground currently.
-			UE_LOG(LogTemp, Display, TEXT("Equipping None"));
+		case Rake:
+			// Equip rake.
+			UE_LOG(LogTemp, Display, TEXT("Equipping Rake"));
 			FP_Equipment->SetStaticMesh(m_RakeMesh);
-			FP_Equipment->SetActive(true);
 			m_CurrentOffset = FVector(-6.0, -3.0, 34.0);
-			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
 			m_CurrentRotation = FRotator(338.0, 220.0, 0.0);
-			FP_Equipment->SetRelativeRotation(m_CurrentRotation);
-			m_Hotbar->SetSelected(int(None));
 			break;
 		case Watering_Can:
 			// Equip watering can
 			UE_LOG(LogTemp, Display, TEXT("Equipping Watering Can"));
-			FP_Equipment->SetActive(true);
 			FP_Equipment->SetStaticMesh(m_WateringCanMesh);
 			m_CurrentOffset = FVector(0, 19, -15);
-			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
-			FP_Equipment->SetRelativeRotation(FRotator(0.0f));
-			m_Hotbar->SetSelected(int(Watering_Can));
+			m_CurrentRotation = FRotator(0.0f);
 			break;
 		case Seeds:
 			// Equip seeds if possible
 			UE_LOG(LogTemp, Display, TEXT("Equipping Seeds"));
-			FP_Equipment->SetActive(true);
 			if (m_SeedMesh != nullptr)
 			{
 				FP_Equipment->SetStaticMesh(m_SeedMesh);
@@ -305,11 +315,16 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 				FP_Equipment->SetStaticMesh(NULL);
 			}
 			m_CurrentOffset = FVector(0, 19, -15);
-			FP_Equipment->SetRelativeLocation(m_CurrentOffset);
-			FP_Equipment->SetRelativeRotation(FRotator(0.0f));
-			m_Hotbar->SetSelected(int(Seeds));
+			m_CurrentRotation = FRotator(0.0f);
 			break;
 		}
+
+		// Update equipment position
+		FP_Equipment->SetRelativeLocation(m_CurrentOffset);
+		FP_Equipment->SetRelativeRotation(m_CurrentRotation);
+
+		// Update the hotbar 
+		m_Hotbar->SetSelected(int(newEquip));
 
 		// Update the current equip
 		m_CurrentlyEquipped = newEquip;
@@ -322,13 +337,19 @@ void AFinalYearProjectCharacter::Pause()
 	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
 
 	// Get the hud so we can pause the game
-	AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(m_Controller->GetHUD());
+	if (m_Controller)
+	{
+		AFinalYearProjectHUD* hud = Cast<AFinalYearProjectHUD>(m_Controller->GetHUD());
 
-	hud->SetPaused(true);
-	m_Controller->SetPause(true);
-	m_Controller->bShowMouseCursor = true;
+		if (hud)
+			hud->SetPaused(true);
 
-	m_Hotbar->RemoveFromViewport();
+		m_Controller->SetPause(true);
+		m_Controller->bShowMouseCursor = true;
+	}
+
+	if(m_Hotbar)
+		m_Hotbar->RemoveFromParent();
 }
 
 void AFinalYearProjectCharacter::ChangeSeeds(FName name)
@@ -435,13 +456,19 @@ void AFinalYearProjectCharacter::ToggleInventory()
 		m_Controller->SetIgnoreMoveInput(false);
 		m_Controller->SetInputMode(FInputModeGameOnly());
 
+		// force create new one
+		m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
+
 		m_Hotbar->AddToViewport(9999);
-		m_Hotbar->SetSelected(m_CurrentlyEquipped);
+		m_Hotbar->SetSelected(int(m_CurrentlyEquipped));
 
 		m_IsInventoryOpen = false;
 	}
 	else
 	{
+		// Refresh inventory items
+		m_Inventory->Refresh();
+
 		// Open inventory
 		m_Inventory->AddToViewport(9999);
 
@@ -455,7 +482,7 @@ void AFinalYearProjectCharacter::ToggleInventory()
 		m_Controller->SetIgnoreLookInput(true);
 		m_Controller->SetIgnoreMoveInput(true);
 
-		m_Hotbar->RemoveFromViewport();
+		m_Hotbar->RemoveFromParent();
 
 		m_IsInventoryOpen = true;
 	}

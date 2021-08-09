@@ -67,4 +67,6 @@ public:
 	void SetPlantMesh(UStaticMesh* mesh);
 
 	void SetCurrentPlant(APlant* plant);
+
+	FORCEINLINE State GetState() { return m_State; }
 };

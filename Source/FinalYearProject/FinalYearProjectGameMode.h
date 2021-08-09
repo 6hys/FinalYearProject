@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "FinalYearProjectGameMode.generated.h"
@@ -29,11 +28,13 @@ protected:
 	/** The widget class we will use as our menu when the game starts. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UMG Game")
 		TSubclassOf<UUserWidget> StartingWidgetClass;
+		TSubclassOf<UUserWidget> m_StartingWidgetClass;
 
 	/** The widget instance that we are using as our menu. */
 	UPROPERTY()
-		UUserWidget* CurrentWidget;
+		UUserWidget* m_CurrentWidget;
+
+private:
+
+	class AFinalYearProjectPlayerController* m_Controller;
 };
-
-
-

@@ -50,25 +50,30 @@ void UUI_Inventory::AddToInventory(FSeedData data, ItemType type)
 		default:
 			break;
 	}
-
-	Refresh();
 }
 
 void UUI_Inventory::Refresh()
 {
 	// Clear scroll boxes.
-	for (UWidget* child : CropsBox->GetAllChildren())
+	if (CropsBox)
 	{
-		if (Cast<UUI_InventoryItem>(child))
+		for (UWidget* child : CropsBox->GetAllChildren())
 		{
-			child->RemoveFromParent();
+			if (Cast<UUI_InventoryItem>(child))
+			{
+				child->RemoveFromParent();
+			}
 		}
 	}
-	for (UWidget* child : SeedsBox->GetAllChildren())
+
+	if (SeedsBox)
 	{
-		if (Cast<UUI_InventoryItem>(child))
+		for (UWidget* child : SeedsBox->GetAllChildren())
 		{
-			child->RemoveFromParent();
+			if (Cast<UUI_InventoryItem>(child))
+			{
+				child->RemoveFromParent();
+			}
 		}
 	}
 

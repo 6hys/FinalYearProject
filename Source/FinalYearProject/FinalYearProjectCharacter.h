@@ -6,12 +6,13 @@
 #include "GameFramework/Character.h"
 
 #include "Plant.h"
+#include "UI_Hotbar.h"
 #include "FinalYearProjectCharacter.generated.h"
 
 class UInputComponent;
 
 enum Equipment {
-	None = 0,
+	Rake = 0,
 	Watering_Can = 1,
 	Seeds = 2
 };
@@ -48,19 +49,20 @@ class AFinalYearProjectCharacter : public ACharacter
 public:
 	AFinalYearProjectCharacter(const FObjectInitializer& ObjectInitializer);
 
+	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseTurnRate;
+
+	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseLookUpRate;
+
+	// Changing equipped item
+	void Equip(Equipment newEquip);
+
 protected:
 	virtual void BeginPlay();
 
-public:
-	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseTurnRate;
-
-	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseLookUpRate;
-
-protected:
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
@@ -86,9 +88,6 @@ protected:
 	// Interaction with the farm tiles.
 	void Interact();
 
-	// Changing equipped item
-	void Equip(Equipment newEquip);
-
 	// Pause the game
 	void Pause();
 
@@ -111,8 +110,8 @@ protected:
 	TSubclassOf<class UUI_RadialHUD> m_RadialHUDClass;
 
 	// Hotbar
-	class UUI_Hotbar* m_Hotbar;
-	TSubclassOf<class UUI_Hotbar> m_HotbarClass;
+	UUI_Hotbar* m_Hotbar;
+	TSubclassOf<UUI_Hotbar> m_HotbarClass;
 
 	// Inventory
 	class UUI_Inventory* m_Inventory;
@@ -120,6 +119,8 @@ protected:
 	bool m_IsInventoryOpen;
 
 	class AFinalYearProjectPlayerController* m_Controller;
+
+	class UFinalYearProjectGameInstance* m_GameInstance;
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 
@@ -136,5 +137,13 @@ public:
 	FORCEINLINE class UUI_Inventory* GetInventory() { return m_Inventory; }
 	// Get whats currently equipped
 	FORCEINLINE int GetCurrentlyEquipped() { return m_CurrentlyEquipped; }
+	// Get the current plant
+	FORCEINLINE APlant* GetCurrentPlant() { return m_CurrentPlant; }
+	// Set the current plant
+	FORCEINLINE void SetCurrentPlant(APlant* newPlant) { m_CurrentPlant = newPlant; }
+	// Set current equipment with an int - for loading
+	FORCEINLINE void Equip(int newEquip) { Equip(Equipment(newEquip)); }
+	// Make a new hotbar
+	FORCEINLINE void MakeNewHotbar() { m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass); }
 };
 
