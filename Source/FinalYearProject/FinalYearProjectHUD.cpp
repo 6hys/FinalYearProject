@@ -28,12 +28,8 @@ void AFinalYearProjectHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Create the pause menu widget
-	if (m_PauseMenuClass)
-	{
-		m_PauseMenu = CreateWidget<UUI_PauseMenu>(GetWorld(), m_PauseMenuClass);
-		m_PauseMenu->RemoveFromViewport();
-	}
+	// Get the player controller
+	m_Controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
 }
 
 
@@ -75,12 +71,13 @@ void AFinalYearProjectHUD::SetPaused(bool isPaused)
 
 	if(isPaused)
 	{
-		AFinalYearProjectPlayerController* controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
+		// create the pause menu 
+		m_PauseMenu = CreateWidget<UUI_PauseMenu>(GetWorld(), m_PauseMenuClass);
 
 		// Update the input mode
 		FInputModeUIOnly inputMode;
 		inputMode.SetWidgetToFocus(m_PauseMenu->GetCachedWidget());
-		controller->SetInputMode(inputMode);
+		m_Controller->SetInputMode(inputMode);
 
 		// Display the pause menu
 		m_PauseMenu->AddToViewport(9999);

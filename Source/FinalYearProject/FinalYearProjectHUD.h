@@ -32,6 +32,8 @@ private:
 	/** Crosshair asset pointer */
 	class UTexture2D* CrosshairTex;
 
+	class AFinalYearProjectPlayerController* m_Controller;
+
 	bool m_isPaused;
 };
 
