@@ -216,7 +216,7 @@ void AGridBase::Interact(Equipment item)
 		m_State = Tilled;
 
 		// Add plant to inventory
-		character->GetInventory()->AddToInventory(*m_CurrentPlant->GetSeedData(), ItemType::Crop);
+		character->AddToInventory(*m_CurrentPlant->GetSeedData(), ItemType::Crop);
 
 		// Reset plant mesh afterwards
 		m_Plant->SetStaticMesh(nullptr);

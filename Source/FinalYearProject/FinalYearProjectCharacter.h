@@ -17,6 +17,12 @@ enum Equipment {
 	Seeds = 2
 };
 
+enum ItemType
+{
+	Seed,
+	Crop
+};
+
 UCLASS(config = Game)
 class AFinalYearProjectCharacter : public ACharacter
 {
@@ -59,6 +65,9 @@ public:
 
 	// Changing equipped item
 	void Equip(Equipment newEquip);
+
+	// Add to inventory 
+	void AddToInventory(FSeedData data, ItemType type);
 
 protected:
 	virtual void BeginPlay();
@@ -118,6 +127,10 @@ protected:
 	TSubclassOf<class UUI_Inventory> m_InventoryClass;
 	bool m_IsInventoryOpen;
 
+	// Arrays to store the information about the items in the inventory
+	TArray<FSeedData> m_SeedItems;
+	TArray<FSeedData> m_CropItems;
+
 	class AFinalYearProjectPlayerController* m_Controller;
 
 	class UFinalYearProjectGameInstance* m_GameInstance;
@@ -145,5 +158,9 @@ public:
 	FORCEINLINE void Equip(int newEquip) { Equip(Equipment(newEquip)); }
 	// Make a new hotbar
 	FORCEINLINE void MakeNewHotbar() { m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass); }
+	// Get seed inventory data
+	FORCEINLINE TArray<FSeedData> GetSeedInvData() { return m_SeedItems; }
+	// Get crop inventory data
+	FORCEINLINE TArray<FSeedData> GetCropInvData() { return m_CropItems; }
 };
 

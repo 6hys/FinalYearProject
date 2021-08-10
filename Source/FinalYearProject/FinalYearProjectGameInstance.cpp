@@ -84,9 +84,8 @@ void UFinalYearProjectGameInstance::SaveGame()
 			UE_LOG(LogTemp, Display, TEXT("no save name stored"));
 		}
 		// inventory saved
-		UUI_Inventory* inv = m_Character->GetInventory();
-		saveGameInstance->SeedInventory = inv->GetSeedInventory();
-		saveGameInstance->CropInventory = inv->GetCropInventory();
+		saveGameInstance->SeedInventory = m_Character->GetSeedInvData();
+		saveGameInstance->CropInventory = m_Character->GetCropInvData();
 		// player position saved
 		saveGameInstance->PlayerLocation = m_Character->GetActorLocation();
 		saveGameInstance->PlayerRotation = m_Character->GetActorRotation();

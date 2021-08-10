@@ -16,43 +16,7 @@ UUI_Inventory::UUI_Inventory(const FObjectInitializer& ObjectInitializer)
 	}
 }
 
-void UUI_Inventory::AddToInventory(FSeedData data, ItemType type)
-{
-	// Check if items already in inventory - Add to amount instead
-	// Else add to the array.
-	int i = 0;
-
-	switch (type) {
-		case Seed:
-			i = m_SeedItems.Find(data);
-			if (i != INDEX_NONE)
-			{
-				m_SeedItems[i].Amount++;
-			}
-			else
-			{
-				data.Amount = 1;
-				m_SeedItems.Add(data);
-			}
-			break;
-		case Crop:
-			i = m_CropItems.Find(data);
-			if (i != INDEX_NONE)
-			{
-				m_CropItems[i].Amount++;
-			}
-			else
-			{
-				data.Amount = 1;
-				m_CropItems.Add(data);
-			}
-			break;
-		default:
-			break;
-	}
-}
-
-void UUI_Inventory::Refresh()
+void UUI_Inventory::Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops)
 {
 	// Clear scroll boxes.
 	if (CropsBox)
@@ -78,7 +42,7 @@ void UUI_Inventory::Refresh()
 	}
 
 	// Now re-add items.
-	for (FSeedData data : m_CropItems)
+	for (FSeedData data : crops)
 	{
 		UUI_InventoryItem* widget = CreateWidget<UUI_InventoryItem>(GetWorld(), m_ItemClass);
 
@@ -89,7 +53,7 @@ void UUI_Inventory::Refresh()
 
 		CropsBox->AddChild(widget);
 	}
-	for (FSeedData data : m_SeedItems)
+	for (FSeedData data : seeds)
 	{
 		UUI_InventoryItem* widget = CreateWidget<UUI_InventoryItem>(GetWorld(), m_ItemClass);
 

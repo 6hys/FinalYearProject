@@ -153,13 +153,9 @@ void AFinalYearProjectCharacter::BeginPlay()
 			Equip(m_GameInstance->GetLoadedEquip());
 		}
 
-		if (m_InventoryClass)
-		{
-			m_Inventory = CreateWidget<UUI_Inventory>(GetWorld(), m_InventoryClass);
-
-			m_Inventory->SetSeedInventory(m_GameInstance->GetLoadedSeedInventory());
-			m_Inventory->SetCropInventory(m_GameInstance->GetLoadedCropInventory());
-		}
+		// Set inventory items
+		m_SeedItems = m_GameInstance->GetLoadedSeedInventory();
+		m_CropItems = m_GameInstance->GetLoadedCropInventory();
 
 		FName plant = m_GameInstance->GetLoadedPlant();
 		if(plant != NAME_None)
@@ -448,7 +444,7 @@ void AFinalYearProjectCharacter::ToggleInventory()
 	if (m_IsInventoryOpen)
 	{
 		// Close inventory
-		m_Inventory->RemoveFromViewport();
+		m_Inventory->RemoveFromParent();
 
 		// free player movement
 		m_Controller->bShowMouseCursor = false;
@@ -466,24 +462,68 @@ void AFinalYearProjectCharacter::ToggleInventory()
 	}
 	else
 	{
-		// Refresh inventory items
-		m_Inventory->Refresh();
+		if (m_InventoryClass)
+		{
+			m_Inventory = CreateWidget<UUI_Inventory>(GetWorld(), m_InventoryClass);
+		}
 
-		// Open inventory
-		m_Inventory->AddToViewport(9999);
+		if (m_Inventory)
+		{
+			// Refresh inventory items
+			m_Inventory->Setup(m_SeedItems, m_CropItems);
 
-		// Set mouse to center of screen
-		int X, Y;
-		m_Controller->GetViewportSize(X, Y);
-		m_Controller->SetMouseLocation(X / 2, Y / 2);
+			// Open inventory
+			m_Inventory->AddToViewport(9999);
 
-		// stop player movement
-		m_Controller->bShowMouseCursor = true;
-		m_Controller->SetIgnoreLookInput(true);
-		m_Controller->SetIgnoreMoveInput(true);
+			// Set mouse to center of screen
+			int X, Y;
+			m_Controller->GetViewportSize(X, Y);
+			m_Controller->SetMouseLocation(X / 2, Y / 2);
 
-		m_Hotbar->RemoveFromParent();
+			// stop player movement
+			m_Controller->bShowMouseCursor = true;
+			m_Controller->SetIgnoreLookInput(true);
+			m_Controller->SetIgnoreMoveInput(true);
 
-		m_IsInventoryOpen = true;
+			m_Hotbar->RemoveFromParent();
+
+			m_IsInventoryOpen = true;
+		}
+	}
+}
+
+void AFinalYearProjectCharacter::AddToInventory(FSeedData data, ItemType type)
+{
+	// Check if items already in inventory - Add to amount instead
+	// Else add to the array.
+	int i = 0;
+
+	switch (type) {
+	case Seed:
+		i = m_SeedItems.Find(data);
+		if (i != INDEX_NONE)
+		{
+			m_SeedItems[i].Amount++;
+		}
+		else
+		{
+			data.Amount = 1;
+			m_SeedItems.Add(data);
+		}
+		break;
+	case Crop:
+		i = m_CropItems.Find(data);
+		if (i != INDEX_NONE)
+		{
+			m_CropItems[i].Amount++;
+		}
+		else
+		{
+			data.Amount = 1;
+			m_CropItems.Add(data);
+		}
+		break;
+	default:
+		break;
 	}
 }
