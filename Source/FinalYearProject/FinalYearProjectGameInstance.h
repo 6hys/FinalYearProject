@@ -22,6 +22,9 @@ public:
 	UFinalYearProjectGameInstance(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
+		void NewGameInit();
+
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void LoadGame(FString name);
 
 	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
