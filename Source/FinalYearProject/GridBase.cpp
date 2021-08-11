@@ -206,22 +206,25 @@ void AGridBase::Interact(Equipment item)
 		break;
 	case WateredAndPlanted:
 		// TODO: Check if plant is grown
-		UE_LOG(LogTemp, Display, TEXT("Harvesting %s"), *GetName());
+		if (m_CurrentPlant->GetGrowthTime() <= 0)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Harvesting %s"), *GetName());
 
-		// Reset tile to tilled state
-		tile_Multiplier = 0.75f;
-		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
-		m_Tile->SetMaterial(0, m_GridMaterial);
-		m_Tile->SetStaticMesh(m_PlantedMesh);
-		m_State = Tilled;
+			// Reset tile to tilled state
+			tile_Multiplier = 0.75f;
+			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+			m_Tile->SetMaterial(0, m_GridMaterial);
+			m_Tile->SetStaticMesh(m_PlantedMesh);
+			m_State = Tilled;
 
-		// Add plant to inventory
-		character->AddToInventory(*m_CurrentPlant->GetSeedData(), ItemType::Crop);
+			// Add plant to inventory
+			character->AddToInventory(*m_CurrentPlant->GetSeedData(), ItemType::Crop);
 
-		// Reset plant mesh afterwards
-		m_Plant->SetStaticMesh(nullptr);
-		m_Plant->SetActive(false);
-		m_CurrentPlant = nullptr;
+			// Reset plant mesh afterwards
+			m_Plant->SetStaticMesh(nullptr);
+			m_Plant->SetActive(false);
+			m_CurrentPlant = nullptr;
+		}
 
 	default:
 		break;
@@ -243,4 +246,41 @@ void AGridBase::SetPlantMesh(UStaticMesh* mesh)
 void AGridBase::SetCurrentPlant(APlant* plant)
 {
 	m_CurrentPlant = plant;
+}
+
+void AGridBase::NextDayUpdate()
+{
+	float tile_Multiplier = 1.0f;
+
+	switch (m_State)
+	{
+	case Tilled:
+		// become untilled.
+		m_Tile->SetStaticMesh(m_UnplantedMesh);
+	case Watered:
+		// become unwatered.
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		m_State = Empty;
+		break;
+	case WateredAndPlanted:
+		// plant grows and becomes unwatered.
+		m_CurrentPlant->ReduceGrowthTime();
+		tile_Multiplier = 0.75f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		m_State = Planted;
+		break;
+	case WateredAndTilled:
+		// become unwatered.
+		tile_Multiplier = 0.75f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		m_State = Tilled;
+		break;
+	case Empty:
+	case Planted:
+	default:
+		break;
+	}
 }

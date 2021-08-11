@@ -55,6 +55,23 @@ class AFinalYearProjectCharacter : public ACharacter
 public:
 	AFinalYearProjectCharacter(const FObjectInitializer& ObjectInitializer);
 
+	// End screen functions for blueprints
+	UFUNCTION(BlueprintCallable, Category = "End of Day")
+		void ShowEndScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "End of Day")
+		void HideEndScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "End Of Day")
+		void OpenPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "End Of Day")
+		void ClosePopup();
+
+	// Inventory function
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void ToggleInventory();
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseTurnRate;
@@ -108,8 +125,12 @@ protected:
 	void ChangeSeeds(FName name);
 	void RemoveSeeds();
 
-	// Inventory function
-	void ToggleInventory();
+	// Jump override to stop input
+	virtual void Jump() override;
+
+	// Functions for repeating aspects of opening/closing UI elements
+	void UIOpened();
+	void UIClosed();
 
 	// Radial menu HUD
 	UPROPERTY()
@@ -130,10 +151,21 @@ protected:
 	// Arrays to store the information about the items in the inventory
 	TArray<FSeedData> m_SeedItems;
 	TArray<FSeedData> m_CropItems;
+	
+	// End of day screen
+	TSubclassOf<class UUI_EndOfDayScreen> m_EoDScreenClass;
+	class UUI_EndOfDayScreen* m_EndScreen;
+
+	// end day popup
+	TSubclassOf<UUserWidget> m_PopupClass;
+	UUserWidget* m_Popup;
 
 	class AFinalYearProjectPlayerController* m_Controller;
 
 	class UFinalYearProjectGameInstance* m_GameInstance;
+
+	// Block jump input on some menus
+	bool m_CanJump;
 
 	DECLARE_DELEGATE_OneParam(FEquipDelegate, Equipment);
 

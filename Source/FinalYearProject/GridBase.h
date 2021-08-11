@@ -46,6 +46,7 @@ class FINALYEARPROJECT_API AGridBase : public AActor
 	UStaticMesh* m_PlantedMesh;
 
 	APlant* m_CurrentPlant;
+	int m_GrowthTime;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -67,6 +68,8 @@ public:
 	void SetPlantMesh(UStaticMesh* mesh);
 
 	void SetCurrentPlant(APlant* plant);
+
+	void NextDayUpdate();
 
 	FORCEINLINE State GetState() { return m_State; }
 };

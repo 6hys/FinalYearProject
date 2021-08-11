@@ -20,6 +20,7 @@
 #include "FinalYearProjectHUD.h"
 #include "FinalYearProjectPlayerController.h"
 #include "GridBase.h"
+#include "UI_EndOfDayScreen.h"
 #include "UI_Inventory.h"
 #include "UI_RadialHUD.h"
 #include "UI_SeedItem.h"
@@ -101,6 +102,20 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 		m_InventoryClass = inventory.Class;
 	}
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> popup(TEXT("/Game/FirstPerson/UI/EndDayPopup"));
+	if (popup.Succeeded())
+	{
+		m_PopupClass = popup.Class;
+	}
+
+	// Get the end of day screen class.
+	static ConstructorHelpers::FClassFinder<UUI_EndOfDayScreen> eodScreen(TEXT("/Game/FirstPerson/UI/EndOfDayScreen"));
+	if (eodScreen.Succeeded())
+	{
+		m_EoDScreenClass = eodScreen.Class;
+	}
+
+	m_CanJump = true;
 	m_IsInventoryOpen = false;
 	m_CurrentlyEquipped = Equipment::Rake;
 	m_CurrentOffset = FVector(0, 0, 0);
@@ -172,7 +187,7 @@ void AFinalYearProjectCharacter::SetupPlayerInputComponent(class UInputComponent
 	check(PlayerInputComponent);
 
 	// Bind jump events
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AFinalYearProjectCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind interact event
@@ -386,6 +401,7 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 		// stop player movement
 		m_Controller->SetIgnoreLookInput(true);
 		m_Controller->SetIgnoreMoveInput(true);
+		m_CanJump = false;
 
 		// Set mouse to center of screen
 		int X, Y;
@@ -420,6 +436,7 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 		m_Controller->SetIgnoreLookInput(false);
 		m_Controller->SetIgnoreMoveInput(false);
 		m_Controller->SetInputMode(FInputModeGameOnly());
+		m_CanJump = true;
 
 		// play animation?
 		 m_RadialHUD->PlayAnimation(m_RadialHUD->InOut, 0.0f, 1, EUMGSequencePlayMode::Reverse);
@@ -446,17 +463,9 @@ void AFinalYearProjectCharacter::ToggleInventory()
 		// Close inventory
 		m_Inventory->RemoveFromParent();
 
-		// free player movement
-		m_Controller->bShowMouseCursor = false;
-		m_Controller->SetIgnoreLookInput(false);
-		m_Controller->SetIgnoreMoveInput(false);
-		m_Controller->SetInputMode(FInputModeGameOnly());
+		UIClosed();
 
-		// force create new one
-		m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
-
-		m_Hotbar->AddToViewport(9999);
-		m_Hotbar->SetSelected(int(m_CurrentlyEquipped));
+		EnableInput(m_Controller);
 
 		m_IsInventoryOpen = false;
 	}
@@ -475,17 +484,13 @@ void AFinalYearProjectCharacter::ToggleInventory()
 			// Open inventory
 			m_Inventory->AddToViewport(9999);
 
-			// Set mouse to center of screen
-			int X, Y;
-			m_Controller->GetViewportSize(X, Y);
-			m_Controller->SetMouseLocation(X / 2, Y / 2);
+			UIOpened();
 
-			// stop player movement
-			m_Controller->bShowMouseCursor = true;
-			m_Controller->SetIgnoreLookInput(true);
-			m_Controller->SetIgnoreMoveInput(true);
+			FInputModeUIOnly inputMode;
+			inputMode.SetWidgetToFocus(m_Inventory->GetCachedWidget());
+			m_Controller->SetInputMode(inputMode);
 
-			m_Hotbar->RemoveFromParent();
+			DisableInput(m_Controller);
 
 			m_IsInventoryOpen = true;
 		}
@@ -526,4 +531,94 @@ void AFinalYearProjectCharacter::AddToInventory(FSeedData data, ItemType type)
 	default:
 		break;
 	}
+}
+
+void AFinalYearProjectCharacter::ShowEndScreen()
+{
+	m_EndScreen = CreateWidget<UUI_EndOfDayScreen>(GetWorld(), m_EoDScreenClass);
+
+	m_EndScreen->SetTitleText(m_GameInstance->GetDayCount());
+
+	m_EndScreen->AddToViewport(9999);
+
+	UIOpened();
+
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(m_EndScreen->GetCachedWidget());
+	m_Controller->SetInputMode(inputMode);
+
+	DisableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::HideEndScreen()
+{
+	m_EndScreen->RemoveFromParent();
+
+	UIClosed();
+
+	// reenable input
+	EnableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::Jump()
+{
+	if (m_CanJump)
+	{
+		Super::Jump();
+	}
+}
+
+void AFinalYearProjectCharacter::OpenPopup()
+{
+	m_Popup = CreateWidget<UUserWidget>(GetWorld(), m_PopupClass);
+
+	m_Popup->AddToViewport(9999);
+
+	UIOpened();
+
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(m_Popup->GetCachedWidget());
+	m_Controller->SetInputMode(inputMode);
+
+	DisableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::ClosePopup()
+{
+	m_Popup->RemoveFromParent();
+
+	UIClosed();
+
+	EnableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::UIOpened()
+{
+	// Set mouse to center of screen
+	int X, Y;
+	m_Controller->GetViewportSize(X, Y);
+	m_Controller->SetMouseLocation(X / 2, Y / 2);
+
+	// stop player movement
+	m_Controller->bShowMouseCursor = true;
+	m_Controller->SetIgnoreLookInput(true);
+	m_Controller->SetIgnoreMoveInput(true);
+
+	// remove hotbar
+	m_Hotbar->RemoveFromParent();
+}
+
+void AFinalYearProjectCharacter::UIClosed()
+{
+	// allow player movement
+	m_Controller->bShowMouseCursor = false;
+	m_Controller->SetIgnoreLookInput(false);
+	m_Controller->SetIgnoreMoveInput(false);
+	m_Controller->SetInputMode(FInputModeGameOnly());
+
+	// create new hotbar
+	m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass);
+
+	m_Hotbar->AddToViewport(9999);
+	m_Hotbar->SetSelected(int(m_CurrentlyEquipped));
 }

@@ -21,17 +21,23 @@ public:
 
 	UFinalYearProjectGameInstance(const FObjectInitializer& ObjectInitializer);
 
-	UFUNCTION(BlueprintCallable, Category = "UMG Game")
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void LoadGame(FString name);
 
-	UFUNCTION(BlueprintCallable, Category = "UMG Game")
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void SaveGame();
 
-	UFUNCTION(BlueprintCallable, Category = "UMG Game")
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void SetupLoadMenu(class UScrollBox* savesList);
 
-	UFUNCTION(BlueprintCallable, Category = "UMG Game")
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void SetSaveName(FString name);
+
+	UFUNCTION(BlueprintCallable, Category = "End Of Day")
+		void NextDaySetup();
+
+	UFUNCTION(BlueprintCallable, Category = "End Of Day")
+		void GetCurrentTime(float update);
 
 protected:
 	/** Called when the game starts. */
@@ -47,6 +53,15 @@ private:
 	FString m_SaveName;
 
 	TSubclassOf<class UUI_LoadGameItem> m_LoadGameItemClass;
+
+	// sky sphere
+	TSubclassOf<AActor> m_SkySphereClass;
+	AActor* m_SkySphere;
+	int m_DayCounter;
+	float m_CurrentTime;
+
+	// crop grid
+	class AGridSetup* m_CropGridActor;
 
 	class AFinalYearProjectCharacter* m_Character;
 
@@ -71,4 +86,6 @@ public:
 	FORCEINLINE int GetLoadedEquip() { return m_Equipment; }
 	// get current plant selection
 	FORCEINLINE FName GetLoadedPlant() { return m_CurrentPlant; }
+	// get day count
+	FORCEINLINE int GetDayCount() { return m_DayCounter; }
 };

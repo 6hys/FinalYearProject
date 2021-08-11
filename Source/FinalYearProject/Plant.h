@@ -55,4 +55,8 @@ public:
 	int GetPrice();
 
 	FORCEINLINE FSeedData* GetSeedData() { return m_SeedData; }
+	// Get growth time
+	FORCEINLINE int GetGrowthTime() { return m_GrowthSpeed; }
+	// Reduce growth time
+	FORCEINLINE void ReduceGrowthTime() { m_GrowthSpeed--; }
 };
