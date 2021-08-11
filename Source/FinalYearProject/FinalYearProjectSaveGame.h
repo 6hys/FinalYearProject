@@ -4,9 +4,33 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "GridBase.h"
 #include "SeedData.h"
 #include "FinalYearProjectCharacter.h"
 #include "FinalYearProjectSaveGame.generated.h"
+
+USTRUCT()
+struct FCropGridData
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	FCropGridData()
+		: crop(NAME_None),
+		  state(State::Empty),
+		  growth(0)
+	{
+	}
+
+	UPROPERTY()
+	FName crop;
+
+	UPROPERTY()
+	TEnumAsByte<State> state;
+
+	UPROPERTY()
+	int growth;
+};
 
 /**
  * 
@@ -37,14 +61,15 @@ public:
 	UPROPERTY()
 	int DayCounter;
 	UPROPERTY()
+	float CurrentTime;
+	UPROPERTY()
 	FVector PlayerLocation;
 	UPROPERTY()
 	FRotator PlayerRotation;
 	UPROPERTY()
-	int CurrentEquip;
+	TEnumAsByte<Equipment> CurrentEquip;
 	UPROPERTY()
 	FName CurrentPlant;
-
-
-	// TODO: field data and current time
+	UPROPERTY()
+	TArray<FCropGridData> CropGrid;
 };

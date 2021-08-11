@@ -11,12 +11,14 @@
 
 class UInputComponent;
 
+UENUM()
 enum Equipment {
 	Rake = 0,
 	Watering_Can = 1,
 	Seeds = 2
 };
 
+UENUM()
 enum ItemType
 {
 	Seed,
@@ -181,13 +183,11 @@ public:
 	// Returns the inventory
 	FORCEINLINE class UUI_Inventory* GetInventory() { return m_Inventory; }
 	// Get whats currently equipped
-	FORCEINLINE int GetCurrentlyEquipped() { return m_CurrentlyEquipped; }
+	FORCEINLINE Equipment GetCurrentlyEquipped() { return m_CurrentlyEquipped; }
 	// Get the current plant
 	FORCEINLINE APlant* GetCurrentPlant() { return m_CurrentPlant; }
 	// Set the current plant
 	FORCEINLINE void SetCurrentPlant(APlant* newPlant) { m_CurrentPlant = newPlant; }
-	// Set current equipment with an int - for loading
-	FORCEINLINE void Equip(int newEquip) { Equip(Equipment(newEquip)); }
 	// Make a new hotbar
 	FORCEINLINE void MakeNewHotbar() { m_Hotbar = CreateWidget<UUI_Hotbar>(GetWorld(), m_HotbarClass); }
 	// Get seed inventory data

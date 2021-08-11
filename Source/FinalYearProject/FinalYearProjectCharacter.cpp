@@ -148,9 +148,6 @@ void AFinalYearProjectCharacter::BeginPlay()
 
 	Mesh1P->SetHiddenInGame(false, true);
 
-	// TEMP
-	ChangeSeeds(FName(TEXT("Carrot")));
-
 	// Don't display in main menu
 	if (GetWorld()->GetMapName() != FString("UEDPIE_0_MainMenu"))
 	{

@@ -3,6 +3,8 @@
 
 #include "GridSetup.h"
 #include "Engine/World.h"
+#include "FinalYearProjectGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AGridSetup::AGridSetup()
@@ -19,6 +21,9 @@ void AGridSetup::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Get the game instance 
+	UFinalYearProjectGameInstance* gameInstance = Cast<UFinalYearProjectGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
 	// Draw the grid of tiles
 	for (int i = 1; i <= m_GridX; i++)
 	{
@@ -33,6 +38,18 @@ void AGridSetup::BeginPlay()
 			spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 			m_GridArray.Add(GetWorld()->SpawnActor<AGridBase>(location, rotation, spawnInfo));
+		}
+	}
+
+	if (gameInstance->GetCropGrid().Num() > 0)
+	{
+		for (int i = 0; i < m_GridArray.Num(); i++)
+		{
+			FCropGridData tileData = gameInstance->GetCropGrid()[i];
+			m_GridArray[i]->SetCurrentPlantFromName(tileData.crop);
+			m_GridArray[i]->SetGrowthTime(tileData.growth);
+			m_GridArray[i]->SetState(tileData.state);
+			m_GridArray[i]->SetupOnLoad();
 		}
 	}
 }

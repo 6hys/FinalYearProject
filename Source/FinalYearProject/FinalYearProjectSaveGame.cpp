@@ -6,10 +6,8 @@
 
 UFinalYearProjectSaveGame::UFinalYearProjectSaveGame()
 {
-	SaveSlotName = TEXT("TextSaveSlot");
+	SaveSlotName = TEXT("SaveGame");
 	UserIndex = 0;
 
-	// To be implemented
-	DayCounter = 0;
-	Money = 0;
+	CurrentTime = 8.0f;
 }

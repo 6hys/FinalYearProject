@@ -33,6 +33,7 @@ UFinalYearProjectGameInstance::UFinalYearProjectGameInstance(const FObjectInitia
 	}
 
 	m_DayCounter = 1;
+	m_CurrentTime = 7.0f;
 }
 
 void UFinalYearProjectGameInstance::Init()
@@ -42,7 +43,8 @@ void UFinalYearProjectGameInstance::Init()
 	//Setup default values in the case of a new game.
 	m_PlayerLoc = FVector(1759.0f, 381.0f, 235.0f);
 	m_PlayerRot = FRotator(0.0f, -160.0f, 0.0f);
-	m_Equipment = 0;
+	m_Equipment = Equipment::Rake;
+	m_CurrentPlant = NAME_None;
 }
 
 void UFinalYearProjectGameInstance::LoadGame(FString name)
@@ -71,12 +73,18 @@ void UFinalYearProjectGameInstance::LoadGame(FString name)
 		// current equipment
 		m_Equipment = loadedGame->CurrentEquip;
 		m_CurrentPlant = loadedGame->CurrentPlant;
+		// day and time
+		m_DayCounter = loadedGame->DayCounter;
+		m_CurrentTime = loadedGame->CurrentTime;
+		// field
+		m_CropGrid = loadedGame->CropGrid;
 	}
 }
 
 void UFinalYearProjectGameInstance::SaveGame()
 {
 	m_Character = Cast<AFinalYearProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	m_CropGridActor = Cast<AGridSetup>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridSetup::StaticClass()));
 
 	UE_LOG(LogTemp, Display, TEXT("Saving game"));
 	UFinalYearProjectSaveGame* saveGameInstance = Cast<UFinalYearProjectSaveGame>(UGameplayStatics::CreateSaveGameObject(UFinalYearProjectSaveGame::StaticClass()));
@@ -100,10 +108,26 @@ void UFinalYearProjectGameInstance::SaveGame()
 		saveGameInstance->PlayerLocation = m_Character->GetActorLocation();
 		saveGameInstance->PlayerRotation = m_Character->GetActorRotation();
 		// equipment saved
-		saveGameInstance->CurrentEquip = int(m_Character->GetCurrentlyEquipped());
-		saveGameInstance->CurrentPlant = FName(*m_Character->GetCurrentPlant()->GetName());
-
-		UE_LOG(LogTemp, Display, TEXT("Inventory saved in instance"));
+		saveGameInstance->CurrentEquip = m_Character->GetCurrentlyEquipped();
+		if (m_Character->GetCurrentPlant() != nullptr)
+			saveGameInstance->CurrentPlant = FName(*m_Character->GetCurrentPlant()->GetName());
+		else
+			saveGameInstance->CurrentPlant = NAME_None;
+		// day and time
+		saveGameInstance->DayCounter = m_DayCounter;
+		saveGameInstance->CurrentTime = m_CurrentTime;
+		// field - MAYBE NEED TO SAVE ALL THE VARIABLES SEPARATELY INSTEAD
+		// STATE, PLANT, GROWTH, SIZE???
+		for (AGridBase* tile : m_CropGridActor->GetGridArray())
+		{
+			FCropGridData tileData;
+			tileData.crop = tile->GetPlantName();
+			tileData.state = tile->GetState();
+			tileData.growth = tile->GetGrowthTime();
+			
+			saveGameInstance->CropGrid.Add(tileData);
+		}
+		//saveGameInstance->CropGrid = m_CropGridActor->GetGridArray();
 
 		// https://docs.unrealengine.com/4.26/en-US/InteractiveExperiences/SaveGame/#:~:text=Unreal%20Engine%204%20(UE4)%20features,preserve%20across%20multiple%20play%20sessions.
 		// Save game
@@ -212,4 +236,14 @@ void UFinalYearProjectGameInstance::NextDaySetup()
 void UFinalYearProjectGameInstance::GetCurrentTime(float update)
 {
 	m_CurrentTime = update;
+}
+
+int UFinalYearProjectGameInstance::SetCurrentDay()
+{
+	return m_DayCounter;
+}
+
+float UFinalYearProjectGameInstance::SetCurrentTime()
+{
+	return m_CurrentTime;
 }

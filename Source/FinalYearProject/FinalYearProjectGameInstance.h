@@ -33,6 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
 		void SetSaveName(FString name);
 
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
+		int SetCurrentDay();
+
+	UFUNCTION(BlueprintCallable, Category = "Saving Loading")
+		float SetCurrentTime();
+
 	UFUNCTION(BlueprintCallable, Category = "End Of Day")
 		void NextDaySetup();
 
@@ -70,8 +76,9 @@ private:
 	TArray<FSeedData> m_CropInv;
 	FVector m_PlayerLoc;
 	FRotator m_PlayerRot;
-	int m_Equipment;
+	Equipment m_Equipment;
 	FName m_CurrentPlant;
+	TArray<FCropGridData> m_CropGrid;
 
 public:
 	// get loaded seed inventory
@@ -83,9 +90,11 @@ public:
 	// get player rotation
 	FORCEINLINE FRotator GetLoadedPlayerRotation() { return m_PlayerRot; }
 	// get equipment
-	FORCEINLINE int GetLoadedEquip() { return m_Equipment; }
+	FORCEINLINE Equipment GetLoadedEquip() { return m_Equipment; }
 	// get current plant selection
 	FORCEINLINE FName GetLoadedPlant() { return m_CurrentPlant; }
 	// get day count
 	FORCEINLINE int GetDayCount() { return m_DayCounter; }
+	// get crop grid
+	FORCEINLINE TArray<FCropGridData> GetCropGrid() { return m_CropGrid; }
 };

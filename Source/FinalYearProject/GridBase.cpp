@@ -103,6 +103,59 @@ void AGridBase::Tick(float DeltaTime)
 
 }
 
+void AGridBase::SetupOnLoad()
+{
+	float tile_Multiplier = 1.0f;
+
+	switch (m_State)
+	{
+	case Tilled:
+		tile_Multiplier = 0.75f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+
+		m_Tile->SetStaticMesh(m_PlantedMesh);
+		break;
+	case Watered:
+		tile_Multiplier = 0.4f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+		break;
+	case WateredAndTilled:
+		tile_Multiplier = 0.3f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+
+		m_Tile->SetStaticMesh(m_PlantedMesh);
+		break;
+	case Planted:
+		tile_Multiplier = 0.75f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+
+		m_Tile->SetStaticMesh(m_PlantedMesh);
+
+		if (m_Plant->GetStaticMesh() != nullptr)
+		{
+			// Add plant mesh to the top.
+			m_Plant->SetActive(true);
+		}
+		break;
+	case WateredAndPlanted:
+		tile_Multiplier = 0.3f;
+		m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
+		m_Tile->SetMaterial(0, m_GridMaterial);
+
+		m_Tile->SetStaticMesh(m_PlantedMesh);
+
+		if (m_Plant->GetStaticMesh() != nullptr)
+		{
+			// Add plant mesh to the top.
+			m_Plant->SetActive(true);
+		}
+	}
+}
+
 void AGridBase::Interact(Equipment item)
 {
 	// Get the player character
@@ -246,6 +299,21 @@ void AGridBase::SetPlantMesh(UStaticMesh* mesh)
 void AGridBase::SetCurrentPlant(APlant* plant)
 {
 	m_CurrentPlant = plant;
+}
+
+void AGridBase::SetCurrentPlantFromName(FName plant)
+{
+	if (plant == NAME_None)
+		m_CurrentPlant = nullptr;
+	else
+	{
+		m_CurrentPlant = NewObject<APlant>();
+		m_CurrentPlant->init(plant);
+
+		// Update the seed mesh at runtime
+		m_Plant->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, *(m_CurrentPlant->GetFilePath()))));
+		m_Plant->SetRelativeScale3D(FVector(7.0, 7.0, 7.0));
+	}
 }
 
 void AGridBase::NextDayUpdate()

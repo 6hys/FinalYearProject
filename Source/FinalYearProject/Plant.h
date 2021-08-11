@@ -59,4 +59,6 @@ public:
 	FORCEINLINE int GetGrowthTime() { return m_GrowthSpeed; }
 	// Reduce growth time
 	FORCEINLINE void ReduceGrowthTime() { m_GrowthSpeed--; }
+	// Manually set growth time
+	FORCEINLINE void SetGrowthTime(int newTime) { m_GrowthSpeed = newTime; }
 };
