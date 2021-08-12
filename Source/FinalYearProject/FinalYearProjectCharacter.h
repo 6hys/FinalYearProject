@@ -70,9 +70,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "End Of Day")
 		void ClosePopup();
 
+	// sell screen popups
+	UFUNCTION(BlueprintCallable, Category = "Selling")
+		void OpenSellScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Selling")
+		void CloseSellScreen();
+
 	// Inventory function
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ToggleInventory();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	bool CanOpen();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -135,11 +145,9 @@ protected:
 	void UIClosed();
 
 	// Radial menu HUD
-	UPROPERTY()
 	class UUI_RadialHUD* m_RadialHUD;
-
-	UPROPERTY()
 	TSubclassOf<class UUI_RadialHUD> m_RadialHUDClass;
+	bool m_IsRadialOpen;
 
 	// Hotbar
 	UUI_Hotbar* m_Hotbar;
@@ -161,6 +169,10 @@ protected:
 	// end day popup
 	TSubclassOf<UUserWidget> m_PopupClass;
 	UUserWidget* m_Popup;
+
+	// selling menu
+	TSubclassOf<class UUI_SellingInterface> m_SellingScreenClass;
+	class UUI_SellingInterface* m_SellingScreen;
 
 	class AFinalYearProjectPlayerController* m_Controller;
 

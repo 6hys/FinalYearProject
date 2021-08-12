@@ -4,27 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "UI_RadialHUD.generated.h"
+#include "UI_SellingInterface.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FINALYEARPROJECT_API UUI_RadialHUD : public UUserWidget
+class FINALYEARPROJECT_API UUI_SellingInterface : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
 
-	UUI_RadialHUD(const FObjectInitializer& ObjectInitializer);
+	UUI_SellingInterface(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UImage* BGImage;
+		class UScrollBox* CropBox;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UUI_RadialMenu* RadialMenu;
-
-private:
-
-	virtual void NativeConstruct() override;
+		class UScrollBox* SellingBox;
+	
 };

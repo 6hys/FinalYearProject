@@ -2,7 +2,6 @@
 
 #include "FinalYearProjectCharacter.h"
 
-#include "Animation/AnimInstance.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -24,6 +23,7 @@
 #include "UI_Inventory.h"
 #include "UI_RadialHUD.h"
 #include "UI_SeedItem.h"
+#include "UI_SellingInterface.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -115,8 +115,16 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 		m_EoDScreenClass = eodScreen.Class;
 	}
 
+	// Get the selling interface
+	static ConstructorHelpers::FClassFinder<UUI_SellingInterface> sellingInterface(TEXT("/Game/FirstPerson/UI/SellingInterface"));
+	if (sellingInterface.Succeeded())
+	{
+		m_SellingScreenClass = sellingInterface.Class;
+	}
+
 	m_CanJump = true;
 	m_IsInventoryOpen = false;
+	m_IsRadialOpen = false;
 	m_CurrentlyEquipped = Equipment::Rake;
 	m_CurrentOffset = FVector(0, 0, 0);
 }
@@ -151,12 +159,6 @@ void AFinalYearProjectCharacter::BeginPlay()
 	// Don't display in main menu
 	if (GetWorld()->GetMapName() != FString("UEDPIE_0_MainMenu"))
 	{
-		// Create the radial menu HUD
-		if (m_RadialHUDClass)
-		{
-			m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
-		}
-
 		// Create the hotbar
 		if (m_HotbarClass)
 		{
@@ -392,9 +394,16 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 	// Do nothing on the main menu.
 	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
 
+	// create new radial menu
+	m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
+
 	// Check the inventory isnt open
 	if (!m_RadialHUD->RadialMenu->GetIsOpen() && m_IsInventoryOpen == false)
 	{
+		//TODO: initialise radial menu with items in inventory
+
+		m_IsRadialOpen = true;
+
 		// stop player movement
 		m_Controller->SetIgnoreLookInput(true);
 		m_Controller->SetIgnoreMoveInput(true);
@@ -404,9 +413,6 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 		int X, Y;
 		m_Controller->GetViewportSize(X, Y);
 		m_Controller->SetMouseLocation(X / 2, Y / 2);
-
-		// Play animation?
-		m_RadialHUD->PlayAnimation(m_RadialHUD->InOut);
 
 		// Set radial menu open and make the opacity 1
 		m_RadialHUD->RadialMenu->SetIsOpen(true);
@@ -426,8 +432,12 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 
 	if (m_RadialHUD->RadialMenu->GetIsOpen())
 	{
+		// Set radial menu closed and make opacity 0 
+		m_RadialHUD->RadialMenu->SetIsOpen(false);
+		m_RadialHUD->RadialMenu->SetOpacity(0.0f);
+
 		// Remove HUD from viewport
-		m_RadialHUD->RemoveFromViewport();
+		m_RadialHUD->RemoveFromParent();
 
 		// free player movement
 		m_Controller->SetIgnoreLookInput(false);
@@ -435,12 +445,7 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 		m_Controller->SetInputMode(FInputModeGameOnly());
 		m_CanJump = true;
 
-		// play animation?
-		 m_RadialHUD->PlayAnimation(m_RadialHUD->InOut, 0.0f, 1, EUMGSequencePlayMode::Reverse);
-
-		// Set radial menu closed and make opacity 0 
-		m_RadialHUD->RadialMenu->SetIsOpen(false);
-		m_RadialHUD->RadialMenu->SetOpacity(0.0f);
+		m_IsRadialOpen = false;
 
 		FString currentSeed = m_RadialHUD->RadialMenu->GetCurrentItem()->GetName();
 
@@ -589,6 +594,26 @@ void AFinalYearProjectCharacter::ClosePopup()
 	EnableInput(m_Controller);
 }
 
+void AFinalYearProjectCharacter::OpenSellScreen()
+{
+	m_SellingScreen = CreateWidget<UUI_SellingInterface>(GetWorld(), m_SellingScreenClass);
+	m_SellingScreen->AddToViewport(9999);
+	UIOpened();
+
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(m_SellingScreen->GetCachedWidget());
+	m_Controller->SetInputMode(inputMode);
+
+	DisableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::CloseSellScreen()
+{
+	m_SellingScreen->RemoveFromParent();
+	UIClosed();
+	EnableInput(m_Controller);
+}
+
 void AFinalYearProjectCharacter::UIOpened()
 {
 	// Set mouse to center of screen
@@ -618,4 +643,9 @@ void AFinalYearProjectCharacter::UIClosed()
 
 	m_Hotbar->AddToViewport(9999);
 	m_Hotbar->SetSelected(int(m_CurrentlyEquipped));
+}
+
+bool AFinalYearProjectCharacter::CanOpen()
+{
+	return (m_IsRadialOpen == false && m_IsInventoryOpen == false);
 }

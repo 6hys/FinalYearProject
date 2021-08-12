@@ -36,6 +36,20 @@ UFinalYearProjectGameInstance::UFinalYearProjectGameInstance(const FObjectInitia
 void UFinalYearProjectGameInstance::Init()
 {
 	Super::Init();
+
+	// TEMP so i dont fall through the floor and stuff when i start in the game without using the menu.
+	//Setup default values in the case of a new game.
+	m_PlayerLoc = FVector(1759.0f, 381.0f, 235.0f);
+	m_PlayerRot = FRotator(0.0f, -160.0f, 0.0f);
+	m_Equipment = Equipment::Rake;
+	m_CurrentPlant = NAME_None;
+
+	m_DayCounter = 1;
+	m_CurrentTime = 7.0f;
+
+	m_SeedInv.Empty();
+	m_CropInv.Empty();
+	m_CropGrid.Empty();
 }
 
 void UFinalYearProjectGameInstance::NewGameInit()
