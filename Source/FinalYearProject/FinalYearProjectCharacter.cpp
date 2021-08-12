@@ -170,6 +170,7 @@ void AFinalYearProjectCharacter::BeginPlay()
 		// Set inventory items
 		m_SeedItems = m_GameInstance->GetLoadedSeedInventory();
 		m_CropItems = m_GameInstance->GetLoadedCropInventory();
+		m_Money = m_GameInstance->GetMoney();
 
 		FName plant = m_GameInstance->GetLoadedPlant();
 		if(plant != NAME_None)
@@ -458,7 +459,7 @@ void AFinalYearProjectCharacter::ToggleInventory()
 	UE_LOG(LogTemp, Display, TEXT("Toggle Inventory"));
 
 	// Do nothing on the main menu or with the radial menu open.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu") || m_RadialHUD->RadialMenu->GetIsOpen() == true) return;
+	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu") || m_IsRadialOpen == true) return;
 
 	if (m_IsInventoryOpen)
 	{
@@ -481,7 +482,7 @@ void AFinalYearProjectCharacter::ToggleInventory()
 		if (m_Inventory)
 		{
 			// Refresh inventory items
-			m_Inventory->Setup(m_SeedItems, m_CropItems);
+			m_Inventory->Setup(m_SeedItems, m_CropItems, m_Money);
 
 			// Open inventory
 			m_Inventory->AddToViewport(9999);
@@ -540,6 +541,7 @@ void AFinalYearProjectCharacter::ShowEndScreen()
 	m_EndScreen = CreateWidget<UUI_EndOfDayScreen>(GetWorld(), m_EoDScreenClass);
 
 	m_EndScreen->SetTitleText(m_GameInstance->GetDayCount());
+	m_EndScreen->SetMoneyText(m_Money);
 
 	m_EndScreen->AddToViewport(9999);
 
@@ -597,6 +599,10 @@ void AFinalYearProjectCharacter::ClosePopup()
 void AFinalYearProjectCharacter::OpenSellScreen()
 {
 	m_SellingScreen = CreateWidget<UUI_SellingInterface>(GetWorld(), m_SellingScreenClass);
+
+	// add items to selling screen
+	m_SellingScreen->Setup(m_CropItems, m_Money);
+
 	m_SellingScreen->AddToViewport(9999);
 	UIOpened();
 
@@ -612,6 +618,36 @@ void AFinalYearProjectCharacter::CloseSellScreen()
 	m_SellingScreen->RemoveFromParent();
 	UIClosed();
 	EnableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::SellCrop(FString name)
+{
+	for (int i = 0; i < m_CropItems.Num(); i++)
+	{
+		if (m_CropItems[i].RowName == name)
+		{
+			m_Money += m_CropItems[i].Value;
+
+			if (m_CropItems[i].Amount > 1)
+			{
+				m_CropItems[i].Amount--;
+				m_SellingScreen->UpdateCrop(name);
+			}
+			else
+			{
+				m_SellingScreen->RemoveCrop(name);
+				m_CropItems.RemoveAt(i);
+			}
+			break;
+		}
+	}
+
+	// TODO
+	// add crop to selling box
+	m_SellingScreen->AddSoldItem(name);
+
+	// update money total
+	m_SellingScreen->UpdateMoney(m_Money);
 }
 
 void AFinalYearProjectCharacter::UIOpened()

@@ -82,6 +82,7 @@ private:
 	Equipment m_Equipment;
 	FName m_CurrentPlant;
 	TArray<FCropGridData> m_CropGrid;
+	int m_Money;
 
 public:
 	// get loaded seed inventory
@@ -100,4 +101,6 @@ public:
 	FORCEINLINE int GetDayCount() { return m_DayCounter; }
 	// get crop grid
 	FORCEINLINE TArray<FCropGridData> GetCropGrid() { return m_CropGrid; }
+	// get money
+	FORCEINLINE int GetMoney() { return m_Money; }
 };

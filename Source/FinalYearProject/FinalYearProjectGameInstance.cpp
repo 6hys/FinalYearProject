@@ -46,6 +46,7 @@ void UFinalYearProjectGameInstance::Init()
 
 	m_DayCounter = 1;
 	m_CurrentTime = 7.0f;
+	m_Money = 500;
 
 	m_SeedInv.Empty();
 	m_CropInv.Empty();
@@ -62,6 +63,7 @@ void UFinalYearProjectGameInstance::NewGameInit()
 
 	m_DayCounter = 1;
 	m_CurrentTime = 7.0f;
+	m_Money = 500;
 
 	m_SeedInv.Empty();
 	m_CropInv.Empty();
@@ -88,6 +90,7 @@ void UFinalYearProjectGameInstance::LoadGame(FString name)
 		// inventory
 		m_SeedInv = loadedGame->SeedInventory;
 		m_CropInv = loadedGame->CropInventory;
+		m_Money = loadedGame->Money;
 		// character position
 		m_PlayerLoc = loadedGame->PlayerLocation;
 		m_PlayerRot = loadedGame->PlayerRotation;
@@ -125,6 +128,7 @@ void UFinalYearProjectGameInstance::SaveGame()
 		// inventory saved
 		saveGameInstance->SeedInventory = m_Character->GetSeedInvData();
 		saveGameInstance->CropInventory = m_Character->GetCropInvData();
+		saveGameInstance->Money = m_Character->GetMoney();
 		// player position saved
 		saveGameInstance->PlayerLocation = m_Character->GetActorLocation();
 		saveGameInstance->PlayerRotation = m_Character->GetActorRotation();

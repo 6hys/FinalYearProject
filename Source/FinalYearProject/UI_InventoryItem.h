@@ -31,8 +31,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UImage* Icon;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UButton* BuySellButton;
+
 	// Set Name
 	FORCEINLINE void SetNameText(FString text) { Name->SetText(FText::FromString(text)); }
+	// Get Name
+	FORCEINLINE FString GetNameText() { return Name->GetText().ToString(); }
 	
 	void SetAmountText(int amt);
 	
@@ -41,4 +46,12 @@ public:
 	void SetGrowthTimeText(int growth);
 
 	void SetImage(FString path);
+
+	void ShowButton();
+
+	void ReduceAmount();
+
+private:
+
+	int m_Amount;
 };

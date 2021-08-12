@@ -27,7 +27,6 @@ UUI_RadialMenu::UUI_RadialMenu(const FObjectInitializer& ObjectInitializer)
 	m_ItemSize = FVector2D(175.0f);
 
 	// Get the seed data table
-	// POSSIBLY TEMP?
 	static ConstructorHelpers::FObjectFinder<UDataTable> seedDataTableObject(TEXT("DataTable'/Game/FirstPerson/Data/SeedData.SeedData'"));
 	if (seedDataTableObject.Succeeded())
 	{
@@ -61,7 +60,7 @@ void UUI_RadialMenu::NativeConstruct()
 	UKismetSystemLibrary::GetSupportedFullscreenResolutions(resolutions);
 	m_ViewportSize = resolutions[resolutions.Num() - 1];
 
-	// Need to set up inventory before doing this
+	// TODO: Need to set up inventory before doing this
 	//m_Seeds = Inventory->GetSeedInventory();
 	// TEMP INIT ALL
 	// Gets the full list of seeds

@@ -25,7 +25,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UScrollBox* SeedsBox;
 
-	void Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops);
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* Money;
+
+	void Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops, int money);
 
 private:
 

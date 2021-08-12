@@ -27,6 +27,13 @@ void UUI_EndOfDayScreen::SetTitleText(int dayCount)
 	Title->SetText(FText::FromString(text));
 }
 
+void UUI_EndOfDayScreen::SetMoneyText(int money)
+{
+	FString moneyText = FString("Money: ");
+	moneyText.AppendInt(money);
+	Money->SetText(FText::FromString(moneyText));
+}
+
 void UUI_EndOfDayScreen::Quit()
 {
 	if (m_Controller)

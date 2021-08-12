@@ -22,6 +22,8 @@ public:
 	// Set Title text: "End Of Day X"
 	void SetTitleText(int dayCount);
 
+	void SetMoneyText(int money);
+
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 		class UButton* ContinueButton;
 
@@ -30,6 +32,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 		class UTextBlock* Title;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+		class UTextBlock* Money;
 
 private:
 

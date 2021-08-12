@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h"
 #include "UI_SellingItem.generated.h"
 
 /**
@@ -29,5 +30,25 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 		class UImage* Icon;
+
+	// Set Name
+	FORCEINLINE void SetNameText(FString text) { Name->SetText(FText::FromString(text)); }
+	// Get Name
+	FORCEINLINE FString GetNameText() { return Name->GetText().ToString(); }
+
+	void SetAmountText(int amt);
+
+	void SetGrowthTimeText(int growth);
+
+	void SetValueText(int val);
+
+	void SetImage(FString path);
+
+	void IncreaseAmount();
+
+private:
+
+	int m_Amount;
+	int m_Value;
 
 };

@@ -70,12 +70,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "End Of Day")
 		void ClosePopup();
 
-	// sell screen popups
+	// sell screen functions
 	UFUNCTION(BlueprintCallable, Category = "Selling")
 		void OpenSellScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "Selling")
 		void CloseSellScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Selling")
+		void SellCrop(FString name);
 
 	// Inventory function
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -161,6 +164,7 @@ protected:
 	// Arrays to store the information about the items in the inventory
 	TArray<FSeedData> m_SeedItems;
 	TArray<FSeedData> m_CropItems;
+	int m_Money;
 	
 	// End of day screen
 	TSubclassOf<class UUI_EndOfDayScreen> m_EoDScreenClass;
@@ -206,5 +210,7 @@ public:
 	FORCEINLINE TArray<FSeedData> GetSeedInvData() { return m_SeedItems; }
 	// Get crop inventory data
 	FORCEINLINE TArray<FSeedData> GetCropInvData() { return m_CropItems; }
+	// Get money
+	FORCEINLINE int GetMoney() { return m_Money; }
 };
 

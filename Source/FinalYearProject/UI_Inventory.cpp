@@ -5,6 +5,7 @@
 #include "UI_InventoryItem.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/ScrollBox.h"
+#include "Components/TextBlock.h"
 
 UUI_Inventory::UUI_Inventory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -16,7 +17,7 @@ UUI_Inventory::UUI_Inventory(const FObjectInitializer& ObjectInitializer)
 	}
 }
 
-void UUI_Inventory::Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops)
+void UUI_Inventory::Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops, int money)
 {
 	// Clear scroll boxes.
 	if (CropsBox)
@@ -64,4 +65,9 @@ void UUI_Inventory::Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops)
 
 		SeedsBox->AddChild(widget);
 	}
+
+	// setup money text 
+	FString moneyText = FString("Money: ");
+	moneyText.AppendInt(money);
+	Money->SetText(FText::FromString(moneyText));
 }
