@@ -19,13 +19,13 @@ public:
 	UUI_Hotbar(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UBorder* Border1;
+	class UImage* Slot1BG;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UBorder* Border2;
+	class UImage* Slot2BG;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UBorder* Border3;
+	class UImage* Slot3BG;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UImage* Slot1;
@@ -42,7 +42,10 @@ private:
 
 	virtual void NativeConstruct() override;
 
-	TArray<class UBorder*> m_Borders;
+	TArray<class UImage*> m_Backgrounds;
 	int m_Selected;
+
+	FString m_SelectedImagePath;
+	FString m_UnselectedImagePath;
 	
 };

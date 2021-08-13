@@ -118,11 +118,11 @@ void UUI_RadialMenu::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			// Deselect the old item
 			if (IsValid(m_SeedItems[m_OldIndex]))
 			{
-				m_SeedItems[m_OldIndex]->ItemAmount->SetColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)));
+				m_SeedItems[m_OldIndex]->ItemAmount->SetColorAndOpacity(FSlateColor(FLinearColor(0.4f, 0.4f, 0.3f, 1.0f)));
 			}
 
 			// Highlight the selected item
-			FLinearColor highlightColor = FLinearColor(1.0f, 0.5f, 0.0f, 1.0f);
+			FLinearColor highlightColor = FLinearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 			if (IsValid(m_SeedItems[currentIndex]))
 			{
