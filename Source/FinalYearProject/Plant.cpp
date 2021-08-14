@@ -2,6 +2,7 @@
 
 
 #include "Plant.h"
+#include "Math/UnrealMathUtility.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Empty constructor
@@ -33,6 +34,23 @@ void APlant::init(FName name)
 	m_Value = m_SeedData->Value;
 	m_FilePath = m_SeedData->AssetPath;
 	m_GrowthSpeed = m_SeedData->GrowthTime;
+
+	// Scale values
+	FVector maxScale = FVector(m_SeedData->MaxSizeXY, m_SeedData->MaxSizeXY, m_SeedData->MaxSizeZ);
+	FVector minScale = FVector(m_SeedData->StartingSizeXY, m_SeedData->StartingSizeXY, m_SeedData->StartingSizeZ);
+	for (int i = 0; i <= m_GrowthSpeed; i++)
+	{
+		FVector scale = maxScale;
+		float alpha = float(i) / float(m_GrowthSpeed);
+
+		scale.X = FMath::Lerp(maxScale.X, minScale.X, alpha);
+		scale.Y = FMath::Lerp(maxScale.Y, minScale.Y, alpha);
+		scale.Z = FMath::Lerp(maxScale.Z, minScale.Z, alpha);
+
+		UE_LOG(LogTemp, Display, TEXT("%s has scale %d (alpha %f) as (%f, %f, %f)"), *name.ToString(), i, alpha, scale.X, scale.Y, scale.Z);
+
+		m_GrowthScales.Add(scale);
+	}
 }
 
 // Called when the game starts or when spawned

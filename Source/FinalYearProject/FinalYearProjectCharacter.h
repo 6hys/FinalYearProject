@@ -70,6 +70,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "End Of Day")
 		void ClosePopup();
 
+	UFUNCTION(BlueprintCallable, Category = "End Of Day")
+		void PopupToEndScreen();
+
 	// sell screen functions
 	UFUNCTION(BlueprintCallable, Category = "Selling")
 		void OpenSellScreen();

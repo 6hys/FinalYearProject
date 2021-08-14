@@ -12,7 +12,7 @@ UUI_SellingItem::UUI_SellingItem(const FObjectInitializer& ObjectInitializer)
 
 void UUI_SellingItem::SetAmountText(int amt)
 {
-	FString amountString = FString("x ");
+	FString amountString = FString("x");
 	amountString.AppendInt(amt);
 
 	m_Amount = amt;
@@ -33,7 +33,7 @@ void UUI_SellingItem::SetValueText(int val)
 	FString valueString = FString("Value: ");
 	valueString.AppendInt(val);
 
-	m_Value = val;
+	m_Value = val / m_Amount;
 
 	Value->SetText(FText::FromString(valueString));
 }

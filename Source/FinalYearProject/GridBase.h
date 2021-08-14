@@ -52,9 +52,9 @@ public:
 
 	void SetPlantMesh(UStaticMesh* mesh);
 
-	void SetCurrentPlant(APlant* plant);
-
 	void SetCurrentPlantFromName(FName plant);
+
+	void SetPlantScale();
 
 	void NextDayUpdate();
 
@@ -72,14 +72,20 @@ protected:
 	UStaticMesh* m_UnplantedMesh;
 	UStaticMesh* m_PlantedMesh;
 
-	APlant* m_CurrentPlant;
+private:
+
+	FName m_CurrentPlantName;
+	int m_GrowthTime;
+	TArray<FVector> m_GrowthScales;
+
+	class UFinalYearProjectGameInstance* m_GameInstance;
 
 public:	
 
 	FORCEINLINE State GetState() { return m_State; }
-	FORCEINLINE FName GetPlantName() { return m_CurrentPlant == nullptr ? NAME_None : FName(*m_CurrentPlant->GetName()); }
-	FORCEINLINE int GetGrowthTime() { return m_CurrentPlant == nullptr ? 0 : m_CurrentPlant->GetGrowthTime(); }
+	FORCEINLINE FName GetPlantName() { return m_CurrentPlantName; }
+	FORCEINLINE int GetGrowthTime() { return m_GrowthTime; }
 
 	FORCEINLINE void SetState(State state) { m_State = state; }
-	FORCEINLINE void SetGrowthTime(int time) { if (m_CurrentPlant) m_CurrentPlant->SetGrowthTime(time); }
+	FORCEINLINE void SetGrowthTime(int time) { m_GrowthTime = time; }
 };

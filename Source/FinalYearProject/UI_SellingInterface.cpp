@@ -71,7 +71,7 @@ void UUI_SellingInterface::Setup(TArray<FSeedData> crops, int money)
 	m_SoldItems.Empty();
 
 	// setup money text 
-	FString moneyText = FString("Money: ");
+	FString moneyText = FString("");
 	moneyText.AppendInt(money);
 	Money->SetText(FText::FromString(moneyText));
 }
@@ -155,7 +155,7 @@ void UUI_SellingInterface::AddSoldItem(FString name)
 void UUI_SellingInterface::UpdateMoney(int money)
 {
 	// update money text 
-	FString moneyText = FString("Money: ");
+	FString moneyText = FString("");
 	moneyText.AppendInt(money);
 	Money->SetText(FText::FromString(moneyText));
 }

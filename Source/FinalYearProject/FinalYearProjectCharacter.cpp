@@ -174,7 +174,7 @@ void AFinalYearProjectCharacter::BeginPlay()
 
 		FName plant = m_GameInstance->GetLoadedPlant();
 		if(plant != NAME_None)
-			ChangeSeeds(m_GameInstance->GetLoadedPlant());
+			ChangeSeeds(plant);
 	}
 }
 
@@ -277,10 +277,10 @@ void AFinalYearProjectCharacter::Interact()
 		// Interact with the tile
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
 		// Don't update the tiles plant if its already been planted.
-		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr && hitTile->GetState() < 4 )
+		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr && hitTile->GetState() < 4 && hitTile->GetState() > 0)
 		{
-			hitTile->SetPlantMesh(m_SeedMesh);
-			hitTile->SetCurrentPlant(m_CurrentPlant);
+			// create new plant to be planted
+			hitTile->SetCurrentPlantFromName(FName(*m_CurrentPlant->GetName()));
 		}
 		hitTile->Interact(m_CurrentlyEquipped);
 	}
@@ -596,6 +596,22 @@ void AFinalYearProjectCharacter::ClosePopup()
 	EnableInput(m_Controller);
 }
 
+void AFinalYearProjectCharacter::PopupToEndScreen()
+{
+	m_Popup->RemoveFromParent();
+
+	m_EndScreen = CreateWidget<UUI_EndOfDayScreen>(GetWorld(), m_EoDScreenClass);
+
+	m_EndScreen->SetTitleText(m_GameInstance->GetDayCount());
+	m_EndScreen->SetMoneyText(m_Money);
+
+	m_EndScreen->AddToViewport(9999);
+
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(m_EndScreen->GetCachedWidget());
+	m_Controller->SetInputMode(inputMode);
+}
+
 void AFinalYearProjectCharacter::OpenSellScreen()
 {
 	m_SellingScreen = CreateWidget<UUI_SellingInterface>(GetWorld(), m_SellingScreenClass);
@@ -642,7 +658,6 @@ void AFinalYearProjectCharacter::SellCrop(FString name)
 		}
 	}
 
-	// TODO
 	// add crop to selling box
 	m_SellingScreen->AddSoldItem(name);
 

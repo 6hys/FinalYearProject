@@ -31,18 +31,6 @@ public:
 
 	};
 
-	/* Data I Need
-	// Name
-	// Price
-	// Value
-	// Days to Grow
-	// Asset path
-	// Initial size?
-	// Growth multiplier?
-	// Icon Image
-	// Amount
-	*/
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
 	FString RowName;
 
@@ -67,6 +55,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
 	int Amount;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	float MaxSizeXY;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	float MaxSizeZ;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	float StartingSizeXY;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Seeds)
+	float StartingSizeZ;
+
 	// overload == operator
 	bool operator==(const FSeedData& b) const;
+
+	// overload != operator
+	bool operator!=(const FSeedData& b) const;
 };

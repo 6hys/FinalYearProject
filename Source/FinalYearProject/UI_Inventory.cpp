@@ -67,7 +67,7 @@ void UUI_Inventory::Setup(TArray<FSeedData> seeds, TArray<FSeedData> crops, int 
 	}
 
 	// setup money text 
-	FString moneyText = FString("Money: ");
+	FString moneyText = FString("");
 	moneyText.AppendInt(money);
 	Money->SetText(FText::FromString(moneyText));
 }

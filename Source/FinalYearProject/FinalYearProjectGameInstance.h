@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
 #include "FinalYearProjectSaveGame.h"
 #include "SeedData.h"
@@ -72,6 +73,9 @@ private:
 	// crop grid
 	class AGridSetup* m_CropGridActor;
 
+	// seed database
+	UDataTable* m_SeedDataTable;
+
 	class AFinalYearProjectCharacter* m_Character;
 
 	// storing load data to be setup once the level has loaded and widgets/actors have been created
@@ -103,4 +107,6 @@ public:
 	FORCEINLINE TArray<FCropGridData> GetCropGrid() { return m_CropGrid; }
 	// get money
 	FORCEINLINE int GetMoney() { return m_Money; }
+	// get seed data
+	FORCEINLINE FSeedData* GetSeedData(FName name) { return m_SeedDataTable->FindRow<FSeedData>(name, ""); }
 };

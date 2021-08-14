@@ -13,7 +13,7 @@ UUI_InventoryItem::UUI_InventoryItem(const FObjectInitializer& ObjectInitializer
 
 void UUI_InventoryItem::SetAmountText(int amt)
 {
-	FString amountString = FString("x ");
+	FString amountString = FString("x");
 	amountString.AppendInt(amt);
 
 	m_Amount = amt;

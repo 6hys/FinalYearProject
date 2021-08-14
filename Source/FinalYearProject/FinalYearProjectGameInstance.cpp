@@ -31,6 +31,12 @@ UFinalYearProjectGameInstance::UFinalYearProjectGameInstance(const FObjectInitia
 	{
 		m_SkySphereClass = skySphere.Class;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> seedDataTableObject(TEXT("DataTable'/Game/FirstPerson/Data/SeedData.SeedData'"));
+	if (seedDataTableObject.Succeeded())
+	{
+		m_SeedDataTable = seedDataTableObject.Object;
+	}
 }
 
 void UFinalYearProjectGameInstance::Init()
@@ -108,7 +114,6 @@ void UFinalYearProjectGameInstance::LoadGame(FString name)
 void UFinalYearProjectGameInstance::SaveGame()
 {
 	m_Character = Cast<AFinalYearProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	m_CropGridActor = Cast<AGridSetup>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridSetup::StaticClass()));
 
 	UE_LOG(LogTemp, Display, TEXT("Saving game"));
 	UFinalYearProjectSaveGame* saveGameInstance = Cast<UFinalYearProjectSaveGame>(UGameplayStatics::CreateSaveGameObject(UFinalYearProjectSaveGame::StaticClass()));
@@ -143,16 +148,21 @@ void UFinalYearProjectGameInstance::SaveGame()
 		saveGameInstance->CurrentTime = m_CurrentTime;
 		// field - MAYBE NEED TO SAVE ALL THE VARIABLES SEPARATELY INSTEAD
 		// STATE, PLANT, GROWTH, SIZE???
-		for (AGridBase* tile : m_CropGridActor->GetGridArray())
+		TArray<AActor*> cropGrid;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridBase::StaticClass(), cropGrid);
+		for (AActor* itr : cropGrid)
 		{
-			FCropGridData tileData;
-			tileData.crop = tile->GetPlantName();
-			tileData.state = tile->GetState();
-			tileData.growth = tile->GetGrowthTime();
-			
-			saveGameInstance->CropGrid.Add(tileData);
+			AGridBase* tile = Cast<AGridBase>(itr);
+			if (tile)
+			{
+				FCropGridData tileData;
+				tileData.crop = tile->GetPlantName();
+				tileData.state = tile->GetState();
+				tileData.growth = tile->GetGrowthTime();
+
+				saveGameInstance->CropGrid.Add(tileData);
+			}
 		}
-		//saveGameInstance->CropGrid = m_CropGridActor->GetGridArray();
 
 		// https://docs.unrealengine.com/4.26/en-US/InteractiveExperiences/SaveGame/#:~:text=Unreal%20Engine%204%20(UE4)%20features,preserve%20across%20multiple%20play%20sessions.
 		// Save game
@@ -242,13 +252,14 @@ void UFinalYearProjectGameInstance::NextDaySetup()
 	// also call this for the sake of save and quit
 	m_Character->SetActorRotation(FRotator(0.0f, 26.0f, 0.0f));
 
-	// Get the grid setup
-	m_CropGridActor = Cast<AGridSetup>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridSetup::StaticClass()));
 	// update crops status
-	TArray<AGridBase*> cropGrid = m_CropGridActor->GetGridArray();
-	for (AGridBase* tile : cropGrid)
+	TArray<AActor*> cropGrid;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridBase::StaticClass(), cropGrid);
+	for (AActor* itr : cropGrid)
 	{
-		tile->NextDayUpdate();
+		AGridBase* tile = Cast<AGridBase>(itr);
+		if(tile)
+			tile->NextDayUpdate();
 	}
 
 	// set time to morning
