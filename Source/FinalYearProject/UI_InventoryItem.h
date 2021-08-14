@@ -51,6 +51,8 @@ public:
 
 	void ReduceAmount();
 
+	void IncreaseAmount();
+
 private:
 
 	int m_Amount;

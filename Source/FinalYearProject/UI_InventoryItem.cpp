@@ -54,3 +54,9 @@ void UUI_InventoryItem::ReduceAmount()
 	m_Amount--;
 	SetAmountText(m_Amount);
 }
+
+void UUI_InventoryItem::IncreaseAmount()
+{
+	m_Amount++;
+	SetAmountText(m_Amount);
+}

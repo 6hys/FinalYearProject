@@ -23,7 +23,7 @@
 #include "UI_Inventory.h"
 #include "UI_RadialHUD.h"
 #include "UI_SeedItem.h"
-#include "UI_SellingInterface.h"
+#include "UI_ShopInterface.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -116,10 +116,10 @@ AFinalYearProjectCharacter::AFinalYearProjectCharacter(const FObjectInitializer&
 	}
 
 	// Get the selling interface
-	static ConstructorHelpers::FClassFinder<UUI_SellingInterface> sellingInterface(TEXT("/Game/FirstPerson/UI/SellingInterface"));
-	if (sellingInterface.Succeeded())
+	static ConstructorHelpers::FClassFinder<UUI_ShopInterface> shopInterface(TEXT("/Game/FirstPerson/UI/ShopInterface"));
+	if (shopInterface.Succeeded())
 	{
-		m_SellingScreenClass = sellingInterface.Class;
+		m_ShopScreenClass = shopInterface.Class;
 	}
 
 	m_CanJump = true;
@@ -274,6 +274,8 @@ void AFinalYearProjectCharacter::Interact()
 	DrawDebugLine(GetWorld(), start, end, FColor::Orange, false, 2.0f);
 	if (hit.GetActor())
 	{
+		bool removeSeed = false; 
+
 		// Interact with the tile
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
 		// Don't update the tiles plant if its already been planted.
@@ -281,8 +283,25 @@ void AFinalYearProjectCharacter::Interact()
 		{
 			// create new plant to be planted
 			hitTile->SetCurrentPlantFromName(FName(*m_CurrentPlant->GetName()));
+			// reduce amount of current seed
+			int index = m_SeedItems.Find(*m_GameInstance->GetSeedData(FName(*m_CurrentPlant->GetName())));
+			if (m_SeedItems[index].Amount > 1)
+			{
+				m_SeedItems[index].Amount--;
+			}
+			else
+			{
+				m_SeedItems.RemoveAt(index);
+				removeSeed = true;
+
+			}
 		}
 		hitTile->Interact(m_CurrentlyEquipped);
+		// After interacting, remove the current seed
+		if (removeSeed)
+		{
+			RemoveSeeds();
+		}
 	}
 	else
 	{
@@ -386,6 +405,12 @@ void AFinalYearProjectCharacter::RemoveSeeds()
 	// Clear selected seeds
 	m_SeedMesh = nullptr;
 	m_CurrentPlant = nullptr;
+
+	if (m_CurrentlyEquipped == Equipment::Seeds)
+	{
+		UE_LOG(LogTemp, Display, TEXT("removing seed mesh"));
+		FP_Equipment->SetStaticMesh(NULL);
+	}
 }
 
 void AFinalYearProjectCharacter::OpenRadialMenu()
@@ -399,7 +424,7 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 	m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
 
 	// Check the inventory isnt open
-	if (!m_RadialHUD->RadialMenu->GetIsOpen() && m_IsInventoryOpen == false)
+	if (!m_RadialHUD->RadialMenu->GetIsOpen() && m_IsInventoryOpen == false && m_SeedItems.Num() > 0)
 	{
 		//TODO: initialise radial menu with items in inventory
 
@@ -431,7 +456,7 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 	// Do nothing on the main menu.
 	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
 
-	if (m_RadialHUD->RadialMenu->GetIsOpen())
+	if (m_RadialHUD->RadialMenu->GetIsOpen() && m_SeedItems.Num() > 0)
 	{
 		// Set radial menu closed and make opacity 0 
 		m_RadialHUD->RadialMenu->SetIsOpen(false);
@@ -448,9 +473,12 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 
 		m_IsRadialOpen = false;
 
-		FString currentSeed = m_RadialHUD->RadialMenu->GetCurrentItem()->GetName();
+		if (m_SeedItems.Num() > 0)
+		{
+			FString currentSeed = m_RadialHUD->RadialMenu->GetCurrentItem()->GetName();
 
-		ChangeSeeds(*currentSeed);
+			ChangeSeeds(*currentSeed);
+		}
 	}
 }
 
@@ -614,16 +642,16 @@ void AFinalYearProjectCharacter::PopupToEndScreen()
 
 void AFinalYearProjectCharacter::OpenSellScreen()
 {
-	m_SellingScreen = CreateWidget<UUI_SellingInterface>(GetWorld(), m_SellingScreenClass);
+	m_ShopScreen = CreateWidget<UUI_ShopInterface>(GetWorld(), m_ShopScreenClass);
 
 	// add items to selling screen
-	m_SellingScreen->Setup(m_CropItems, m_Money);
+	m_ShopScreen->SetupSellScreen(m_CropItems, m_Money);
 
-	m_SellingScreen->AddToViewport(9999);
+	m_ShopScreen->AddToViewport(9999);
 	UIOpened();
 
 	FInputModeUIOnly inputMode;
-	inputMode.SetWidgetToFocus(m_SellingScreen->GetCachedWidget());
+	inputMode.SetWidgetToFocus(m_ShopScreen->GetCachedWidget());
 	m_Controller->SetInputMode(inputMode);
 
 	DisableInput(m_Controller);
@@ -631,7 +659,7 @@ void AFinalYearProjectCharacter::OpenSellScreen()
 
 void AFinalYearProjectCharacter::CloseSellScreen()
 {
-	m_SellingScreen->RemoveFromParent();
+	m_ShopScreen->RemoveFromParent();
 	UIClosed();
 	EnableInput(m_Controller);
 }
@@ -647,11 +675,11 @@ void AFinalYearProjectCharacter::SellCrop(FString name)
 			if (m_CropItems[i].Amount > 1)
 			{
 				m_CropItems[i].Amount--;
-				m_SellingScreen->UpdateCrop(name);
+				m_ShopScreen->UpdateCrop(name);
 			}
 			else
 			{
-				m_SellingScreen->RemoveCrop(name);
+				m_ShopScreen->RemoveCrop(name);
 				m_CropItems.RemoveAt(i);
 			}
 			break;
@@ -659,10 +687,66 @@ void AFinalYearProjectCharacter::SellCrop(FString name)
 	}
 
 	// add crop to selling box
-	m_SellingScreen->AddSoldItem(name);
+	m_ShopScreen->AddSoldItem(name);
 
 	// update money total
-	m_SellingScreen->UpdateMoney(m_Money);
+	m_ShopScreen->UpdateMoney(m_Money);
+}
+
+void AFinalYearProjectCharacter::OpenBuyScreen()
+{
+	m_ShopScreen = CreateWidget<UUI_ShopInterface>(GetWorld(), m_ShopScreenClass);
+
+	// add items to selling screen
+	m_ShopScreen->SetupBuyScreen(m_SeedItems, m_Money);
+
+	m_ShopScreen->AddToViewport(9999);
+	UIOpened();
+
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(m_ShopScreen->GetCachedWidget());
+	m_Controller->SetInputMode(inputMode);
+
+	DisableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::CloseBuyScreen()
+{
+	m_ShopScreen->RemoveFromParent();
+	UIClosed();
+	EnableInput(m_Controller);
+}
+
+void AFinalYearProjectCharacter::BuySeeds(FString name)
+{
+	FSeedData* data = m_GameInstance->GetSeedData(FName(*name));
+	if (m_Money < data->Price) return;
+
+	bool newSeed = true;
+
+	for (int i = 0; i < m_SeedItems.Num(); i++)
+	{
+		if (m_SeedItems[i].RowName == name)
+		{
+			m_Money -= m_SeedItems[i].Price;
+
+			// increase amount owned
+			m_SeedItems[i].Amount++;
+			m_ShopScreen->UpdateSeed(name);
+
+			newSeed = false;
+		}
+	}
+
+	if (newSeed)
+	{
+		m_ShopScreen->AddSeed(name);
+		m_Money -= data->Price;
+		data->Amount = 1;
+		m_SeedItems.Add(*data);
+	}
+
+	m_ShopScreen->UpdateMoney(m_Money);
 }
 
 void AFinalYearProjectCharacter::UIOpened()

@@ -13,6 +13,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Math/Color.h"
 
+#include "FinalYearProjectCharacter.h"
 #include "UI_SeedItem.h"
 
 UUI_RadialMenu::UUI_RadialMenu(const FObjectInitializer& ObjectInitializer)
@@ -60,10 +61,6 @@ void UUI_RadialMenu::NativeConstruct()
 	UKismetSystemLibrary::GetSupportedFullscreenResolutions(resolutions);
 	m_ViewportSize = resolutions[resolutions.Num() - 1];
 
-	// TODO: Need to set up inventory before doing this
-	//m_Seeds = Inventory->GetSeedInventory();
-	// TEMP INIT ALL
-	// Gets the full list of seeds
 	SetupSeedItems();
 
 	// Creates all the items
@@ -76,6 +73,7 @@ void UUI_RadialMenu::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 	if (m_IsOpen)
 	{
+		//UE_LOG(LogTemp, Display, TEXT("processing tick"));
 		// Maths to work out the direction of the mouse from the center of the screen.
 		// https://www.youtube.com/watch?v=OHEk3MkzNv0
 		FVector2D mousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
@@ -110,13 +108,11 @@ void UUI_RadialMenu::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		}
 
 		int currentIndex = FindCurrentItem();
-		// TEMP
-		//int currentIndex = 0;
 
 		if (m_OldIndex != currentIndex)
 		{
 			// Deselect the old item
-			if (IsValid(m_SeedItems[m_OldIndex]))
+			if(m_SeedItems.IsValidIndex(m_OldIndex) && IsValid(m_SeedItems[m_OldIndex]))
 			{
 				m_SeedItems[m_OldIndex]->ItemAmount->SetColorAndOpacity(FSlateColor(FLinearColor(0.4f, 0.4f, 0.3f, 1.0f)));
 			}
@@ -124,7 +120,7 @@ void UUI_RadialMenu::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			// Highlight the selected item
 			FLinearColor highlightColor = FLinearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-			if (IsValid(m_SeedItems[currentIndex]))
+			if (m_SeedItems.IsValidIndex(currentIndex) && IsValid(m_SeedItems[currentIndex]))
 			{
 				m_SeedItems[currentIndex]->ItemAmount->SetColorAndOpacity(FSlateColor(highlightColor));
 
@@ -137,6 +133,21 @@ void UUI_RadialMenu::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 			// Update the old index
 			m_OldIndex = currentIndex;
+		}
+		else if ((m_Seeds.Num() == 1 || currentIndex == 0) && m_OldIndex == currentIndex)
+		{
+			FLinearColor highlightColor = FLinearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+			if (m_SeedItems.IsValidIndex(currentIndex) && IsValid(m_SeedItems[currentIndex]))
+			{
+				m_SeedItems[currentIndex]->ItemAmount->SetColorAndOpacity(FSlateColor(highlightColor));
+
+				// Update the current item
+				m_CurrentItem = m_SeedItems[currentIndex];
+
+				// Update the text box
+				ItemName->SetText(FText::FromString(m_CurrentItem->GetName()));
+			}
 		}
 	}
 }
@@ -161,6 +172,11 @@ FVector2D UUI_RadialMenu::GetWidgetPosition(int index)
 
 int UUI_RadialMenu::FindCurrentItem()
 {
+	if (m_Seeds.Num() == 1)
+	{
+		return 0;
+	}
+
 	// Convert to 0-360 range
 	float rot = m_Rotation;
 	
@@ -181,7 +197,15 @@ int UUI_RadialMenu::FindCurrentItem()
 		item = m_Seeds.Num();
 	}
 
+	//UE_LOG(LogTemp, Display, TEXT("returning current item as %d"), (floor - item));
+
 	return (floor - item);
+}
+
+void UUI_RadialMenu::SetupSeedItems()
+{
+	AFinalYearProjectCharacter* character = Cast<AFinalYearProjectCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	m_Seeds = character->GetSeedInvData();
 }
 
 void UUI_RadialMenu::CreateItems()
@@ -203,11 +227,11 @@ void UUI_RadialMenu::CreateItems()
 	{
 		if (m_Seeds.IsValidIndex(i))
 		{
-			FSeedData* seed = m_Seeds[i];
+			FSeedData seed = m_Seeds[i];
 
 			UUI_SeedItem* widget = CreateWidget<UUI_SeedItem>(GetWorld(), m_ItemClass);
 
-			widget->init(*seed);
+			widget->init(seed);
 
 			m_SeedItems.Add(widget);
 
@@ -221,17 +245,6 @@ void UUI_RadialMenu::CreateItems()
 
 			widget->SetRenderOpacity(1.0f);
 		}
-	}
-}
-
-void UUI_RadialMenu::SetupSeedItems()
-{
-	m_Seeds.Empty();
-
-	TArray<FName> rowNames = m_SeedDataTable->GetRowNames();
-	for (FName name : rowNames)
-	{
-		m_Seeds.Add(m_SeedDataTable->FindRow<FSeedData>(name, ""));
 	}
 }
 

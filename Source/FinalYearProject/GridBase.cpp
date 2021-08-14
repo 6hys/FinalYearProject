@@ -324,9 +324,14 @@ void AGridBase::SetPlantMesh(UStaticMesh* mesh)
 void AGridBase::SetCurrentPlantFromName(FName plant)
 {
 	if (plant == NAME_None)
+	{
+		m_Plant->SetStaticMesh(nullptr);
+		m_Plant->SetActive(false);
 		m_CurrentPlantName = NAME_None;
+	}
 	else
 	{
+		UE_LOG(LogTemp, Display, TEXT("Setting new plant from name"));
 		m_CurrentPlantName = plant;
 
 		FSeedData* data = m_GameInstance->GetSeedData(plant);
@@ -337,6 +342,7 @@ void AGridBase::SetCurrentPlantFromName(FName plant)
 		m_GrowthTime = data->GrowthTime;
 
 		// setup growth scales
+		m_GrowthScales.Empty();
 		FVector maxScale = FVector(data->MaxSizeXY, data->MaxSizeXY, data->MaxSizeZ);
 		FVector minScale = FVector(data->StartingSizeXY, data->StartingSizeXY, data->StartingSizeZ);
 		for (int i = 0; i <= m_GrowthTime; i++)
@@ -363,7 +369,7 @@ void AGridBase::SetPlantScale()
 	FVector scale = m_GrowthScales[m_GrowthTime];
 	m_Plant->SetRelativeScale3D(scale);
 
-	UE_LOG(LogTemp, Display, TEXT("setting plant scale"));
+	UE_LOG(LogTemp, Display, TEXT("setting plant scale %s"), *scale.ToString());
 }
 
 void AGridBase::NextDayUpdate()

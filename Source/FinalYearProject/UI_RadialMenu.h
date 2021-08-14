@@ -42,7 +42,7 @@ public:
 	void SetOpacity(float op);
 
 	TArray<class UUI_SeedItem*> GetSeedItems();
-	// TEMP?
+
 	void SetupSeedItems();
 
 	UUI_SeedItem* GetCurrentItem();
@@ -66,7 +66,7 @@ private:
 	FIntPoint m_ViewportSize;
 
 	TSubclassOf<class UUI_SeedItem> m_ItemClass;
-	TArray<FSeedData*> m_Seeds;
+	TArray<FSeedData> m_Seeds;
 	TArray<class UUI_SeedItem*> m_SeedItems;
 	UUI_SeedItem* m_CurrentItem;
 	UDataTable* m_SeedDataTable;

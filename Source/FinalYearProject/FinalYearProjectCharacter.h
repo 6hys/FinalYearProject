@@ -83,6 +83,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Selling")
 		void SellCrop(FString name);
 
+	// buy screen functions
+	UFUNCTION(BlueprintCallable, Category = "Buying")
+		void OpenBuyScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Buying")
+		void CloseBuyScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Buying")
+		void BuySeeds(FString name);
+
 	// Inventory function
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ToggleInventory();
@@ -177,9 +187,9 @@ protected:
 	TSubclassOf<UUserWidget> m_PopupClass;
 	UUserWidget* m_Popup;
 
-	// selling menu
-	TSubclassOf<class UUI_SellingInterface> m_SellingScreenClass;
-	class UUI_SellingInterface* m_SellingScreen;
+	// shop menu
+	TSubclassOf<class UUI_ShopInterface> m_ShopScreenClass;
+	class UUI_ShopInterface* m_ShopScreen;
 
 	class AFinalYearProjectPlayerController* m_Controller;
 
