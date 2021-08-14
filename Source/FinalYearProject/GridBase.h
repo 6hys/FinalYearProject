@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/Actor.h"
+#include "Sound/SoundCue.h"
 #include "FinalYearProjectCharacter.h"
 #include "Plant.h"
 #include "GridBase.generated.h"
@@ -79,6 +81,14 @@ private:
 	TArray<FVector> m_GrowthScales;
 
 	class UFinalYearProjectGameInstance* m_GameInstance;
+
+	// Audio cues
+	// https://answers.unrealengine.com/questions/340205/how-to-play-a-soundcue-in-c.html
+	UAudioComponent* m_InteractAudioComponent;
+	USoundCue* m_HoeHitCue;
+	USoundCue* m_WaterCue;
+	USoundCue* m_PlantCue;
+	USoundCue* m_PickUpCue;
 
 public:	
 

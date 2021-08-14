@@ -60,6 +60,32 @@ AGridBase::AGridBase()
 		m_UnplantedMesh = unplanted.Object;
 	}
 
+	// Get sound cues
+	static ConstructorHelpers::FObjectFinder<USoundCue> hoeCue(TEXT("/Game/FirstPerson/Audio/Effects/Hoe_Hit__Cue"));
+	if (hoeCue.Succeeded())
+	{
+		m_HoeHitCue = hoeCue.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundCue> waterCue(TEXT("/Game/FirstPerson/Audio/Effects/Water_Bucket_Fill_Cue"));
+	if (waterCue.Succeeded())
+	{
+		m_WaterCue = waterCue.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundCue> plantCue(TEXT("/Game/FirstPerson/Audio/Effects/Plant_Seed_Cue"));
+	if (plantCue.Succeeded())
+	{
+		m_PlantCue = plantCue.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundCue> pickupCue(TEXT("/Game/FirstPerson/Audio/Effects/Pickup_Cue"));
+	if (pickupCue.Succeeded())
+	{
+		m_PickUpCue = pickupCue.Object;
+	}
+
+	m_InteractAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("InteractAudioComp"));
+	m_InteractAudioComponent->bAutoActivate = false;
+	m_InteractAudioComponent->SetupAttachment(RootComponent);
+
 	// get game instance
 	m_GameInstance = Cast<UFinalYearProjectGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
@@ -179,6 +205,13 @@ void AGridBase::Interact(Equipment item)
 			tile_Multiplier = 0.4f;
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			if (m_WaterCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_WaterCue);
+				m_InteractAudioComponent->Play();
+			}
+
 			m_State = Watered;
 		}
 		else if (item == Equipment::Rake)
@@ -188,6 +221,12 @@ void AGridBase::Interact(Equipment item)
 			tile_Multiplier = 0.75f;
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			if (m_HoeHitCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_HoeHitCue);
+				m_InteractAudioComponent->Play();
+			}
 
 			m_Tile->SetStaticMesh(m_PlantedMesh);
 			m_State = Tilled;
@@ -202,6 +241,13 @@ void AGridBase::Interact(Equipment item)
 			tile_Multiplier = 0.3f;
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			if (m_WaterCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_WaterCue);
+				m_InteractAudioComponent->Play();
+			}
+
 			m_State = WateredAndTilled;
 		}
 		else if (item == Equipment::Seeds)
@@ -209,6 +255,12 @@ void AGridBase::Interact(Equipment item)
 			if (m_Plant->GetStaticMesh() != nullptr)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Planting %s"), *GetName());
+
+				if (m_PlantCue->IsValidLowLevelFast())
+				{
+					m_InteractAudioComponent->SetSound(m_PlantCue);
+					m_InteractAudioComponent->Play();
+				}
 
 				// Add plant mesh to the top.
 				m_Plant->SetActive(true);
@@ -229,6 +281,12 @@ void AGridBase::Interact(Equipment item)
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
 
+			if (m_HoeHitCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_HoeHitCue);
+				m_InteractAudioComponent->Play();
+			}
+
 			m_Tile->SetStaticMesh(m_PlantedMesh);
 			m_State = WateredAndTilled;
 		}
@@ -242,6 +300,12 @@ void AGridBase::Interact(Equipment item)
 
 				// Add plant mesh to the top.
 				m_Plant->SetActive(true);
+
+				if (m_PlantCue->IsValidLowLevelFast())
+				{
+					m_InteractAudioComponent->SetSound(m_PlantCue);
+					m_InteractAudioComponent->Play();
+				}
 
 				m_State = WateredAndPlanted;
 			}
@@ -264,6 +328,12 @@ void AGridBase::Interact(Equipment item)
 			m_Tile->SetStaticMesh(m_PlantedMesh);
 			m_State = Tilled;
 
+			if (m_PickUpCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_PickUpCue);
+				m_InteractAudioComponent->Play();
+			}
+
 			// Add plant to inventory
 			character->AddToInventory(*m_GameInstance->GetSeedData(m_CurrentPlantName), ItemType::Crop);
 
@@ -279,6 +349,13 @@ void AGridBase::Interact(Equipment item)
 			tile_Multiplier = 0.3f;
 			m_GridMaterial->SetScalarParameterValue(TEXT("Multiplier"), tile_Multiplier);
 			m_Tile->SetMaterial(0, m_GridMaterial);
+
+			if (m_WaterCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_WaterCue);
+				m_InteractAudioComponent->Play();
+			}
+
 			m_State = WateredAndPlanted;
 		}
 		break;
@@ -294,6 +371,12 @@ void AGridBase::Interact(Equipment item)
 			m_Tile->SetMaterial(0, m_GridMaterial);
 			m_Tile->SetStaticMesh(m_PlantedMesh);
 			m_State = Tilled;
+
+			if (m_PickUpCue->IsValidLowLevelFast())
+			{
+				m_InteractAudioComponent->SetSound(m_PickUpCue);
+				m_InteractAudioComponent->Play();
+			}
 
 			// Add plant to inventory
 			character->AddToInventory(*m_GameInstance->GetSeedData(m_CurrentPlantName), ItemType::Crop);
