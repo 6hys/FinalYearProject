@@ -34,7 +34,9 @@ void AFinalYearProjectGameMode::BeginPlay()
 	// controller
 	m_Controller = Cast<AFinalYearProjectPlayerController>(GetWorld()->GetFirstPlayerController());
 
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu"))
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu"))
 	{
 		m_Controller->SetInputMode(FInputModeUIOnly());
 		ChangeMenuWidget(m_StartingWidgetClass);

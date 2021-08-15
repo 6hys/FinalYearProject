@@ -36,7 +36,9 @@ void AFinalYearProjectHUD::BeginPlay()
 void AFinalYearProjectHUD::DrawHUD()
 {
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	Super::DrawHUD();
 

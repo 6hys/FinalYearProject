@@ -157,7 +157,9 @@ void AFinalYearProjectCharacter::BeginPlay()
 	Mesh1P->SetHiddenInGame(false, true);
 
 	// Don't display in main menu
-	if (GetWorld()->GetMapName() != FString("UEDPIE_0_MainMenu"))
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName != FString("MainMenu"))
 	{
 		// Create the hotbar
 		if (m_HotbarClass)
@@ -175,6 +177,16 @@ void AFinalYearProjectCharacter::BeginPlay()
 		FName plant = m_GameInstance->GetLoadedPlant();
 		if(plant != NAME_None)
 			ChangeSeeds(plant);
+
+		// Setup game input mode
+		m_Controller->SetInputMode(FInputModeGameOnly());
+		m_Controller->bShowMouseCursor = false;
+	}
+	else
+	{
+		// Setup UI input mode
+		m_Controller->SetInputMode(FInputModeUIOnly());
+		m_Controller->bShowMouseCursor = true;
 	}
 }
 
@@ -254,7 +266,9 @@ void AFinalYearProjectCharacter::LookUpAtRate(float Rate)
 void AFinalYearProjectCharacter::Interact()
 {
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	// https://www.youtube.com/watch?v=GfsnOiwKJcY&ab_channel=DevEnabled
 
@@ -279,7 +293,8 @@ void AFinalYearProjectCharacter::Interact()
 		// Interact with the tile
 		AGridBase *hitTile = Cast<AGridBase>(hit.GetActor());
 		// Don't update the tiles plant if its already been planted.
-		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr && hitTile->GetState() < 4 && hitTile->GetState() > 0)
+		if (m_CurrentlyEquipped == Seeds && m_SeedMesh != nullptr && m_SeedItems.Num() > 0 &&
+			hitTile->GetState() < 4 && hitTile->GetState() > 0)
 		{
 			// create new plant to be planted
 			hitTile->SetCurrentPlantFromName(FName(*m_CurrentPlant->GetName()));
@@ -313,7 +328,9 @@ void AFinalYearProjectCharacter::Interact()
 void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 {
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	if (m_CurrentlyEquipped != newEquip)
 	{
@@ -364,7 +381,9 @@ void AFinalYearProjectCharacter::Equip(Equipment newEquip)
 void AFinalYearProjectCharacter::Pause()
 {
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	// Get the hud so we can pause the game
 	if (m_Controller)
@@ -418,7 +437,9 @@ void AFinalYearProjectCharacter::OpenRadialMenu()
 	UE_LOG(LogTemp, Display, TEXT("Open Radial Menu"));
 
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	// create new radial menu
 	m_RadialHUD = CreateWidget<UUI_RadialHUD>(GetWorld(), m_RadialHUDClass);
@@ -454,7 +475,9 @@ void AFinalYearProjectCharacter::CloseRadialMenu()
 	UE_LOG(LogTemp, Display, TEXT("Close Radial Menu"));
 
 	// Do nothing on the main menu.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu")) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu")) return;
 
 	if (m_RadialHUD->RadialMenu->GetIsOpen() && m_SeedItems.Num() > 0)
 	{
@@ -487,7 +510,9 @@ void AFinalYearProjectCharacter::ToggleInventory()
 	UE_LOG(LogTemp, Display, TEXT("Toggle Inventory"));
 
 	// Do nothing on the main menu or with the radial menu open.
-	if (GetWorld()->GetMapName() == FString("UEDPIE_0_MainMenu") || m_IsRadialOpen == true) return;
+	FString LevelName = GetWorld()->GetMapName();
+	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (LevelName == FString("MainMenu") || m_IsRadialOpen == true) return;
 
 	if (m_IsInventoryOpen)
 	{
